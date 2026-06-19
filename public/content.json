@@ -1,0 +1,100 @@
+{
+  "site": {
+    "title": "Sonic Pixels",
+    "tagline": "Sound you can see.",
+    "intro": "A field of pixels that listens to the music."
+  },
+  "tracks": [
+    {
+      "title": "Pulse Garden",
+      "description": "A warm, mid-tempo loop — gentle kicks and a pentatonic melody that makes the lower rows bloom. Placeholder track; replace in content.json.",
+      "file": "media/track-1-pulse-garden.wav",
+      "artwork": "media/art-1.svg"
+    },
+    {
+      "title": "Soft Circuit",
+      "description": "Brighter and a touch faster, with swung hats lighting up the top rows. Placeholder track; swap your own audio into /public/media.",
+      "file": "media/track-2-soft-circuit.wav",
+      "artwork": "media/art-2.svg"
+    },
+    {
+      "title": "Low Tide",
+      "description": "Slow and mellow — deep bass that settles the field into a calm pulse. Placeholder track for demonstrating the reactive visuals.",
+      "file": "media/track-3-low-tide.wav",
+      "artwork": "media/art-3.svg"
+    }
+  ],
+  "visuals": [
+    {
+      "type": "image",
+      "file": "media/visual-1.svg",
+      "title": "Tile Study 01",
+      "description": "Placeholder visual. Drop an image or video into /public/media and describe it here."
+    },
+    {
+      "type": "image",
+      "file": "media/visual-2.svg",
+      "title": "Tile Study 02",
+      "description": "Placeholder visual. Supports images and video — set \"type\": \"video\" for clips."
+    },
+    {
+      "type": "image",
+      "file": "media/visual-3.svg",
+      "title": "Field Sketch",
+      "description": "Placeholder visual showing the warm tile palette in motion."
+    },
+    {
+      "type": "image",
+      "file": "media/visual-4.svg",
+      "title": "Grid Bloom",
+      "description": "Placeholder visual — a soft pulse blooming from the centre of the grid."
+    },
+    {
+      "type": "image",
+      "file": "media/visual-5.svg",
+      "title": "Warm Static",
+      "description": "Placeholder visual exploring the resting pattern of the field."
+    },
+    {
+      "type": "image",
+      "file": "media/visual-6.svg",
+      "title": "Resting Pattern",
+      "description": "Placeholder visual. Replace with your own work via content.json."
+    }
+  ],
+  "builds": [
+    {
+      "title": "Sonic Pixels",
+      "description": "This site. A single audio-reactive Three.js scene where a field of solid-colour tiles listens to whatever's playing.",
+      "tags": ["Three.js", "Web Audio", "Vite"],
+      "url": "https://sonicpixels.dk"
+    },
+    {
+      "title": "Tile Engine",
+      "description": "Placeholder build. The instanced-mesh renderer behind the pixel field — describe a real project here.",
+      "tags": ["WebGL", "Instancing"],
+      "url": "https://example.com"
+    },
+    {
+      "title": "Frequency Tuner",
+      "description": "Placeholder build. The radio-band navigation component. Swap in your own project and link.",
+      "tags": ["UI", "Interaction"],
+      "url": "https://example.com"
+    },
+    {
+      "title": "Studio Tools",
+      "description": "Placeholder build. A spot for an internal tool or experiment. Add or remove builds by editing content.json.",
+      "tags": ["Audio", "Tools"],
+      "url": "https://example.com"
+    }
+  ],
+  "contact": {
+    "intro": "Let's make something that listens.",
+    "email": "hello@sonicpixels.dk",
+    "links": [
+      { "label": "Instagram", "url": "https://instagram.com" },
+      { "label": "GitHub", "url": "https://github.com/madshjelm" },
+      { "label": "Bandcamp", "url": "https://bandcamp.com" }
+    ]
+  }
+}
