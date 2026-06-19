@@ -12,13 +12,26 @@ export const PALETTE = {
   teal: 0x4fc9b0,
 };
 
-// Accent colours used by the tiles, low row → high row.
+// Accent colours used by the tiles, low frequency → high frequency.
 export const ACCENTS = [
   new Color(PALETTE.coral),
   new Color(PALETTE.amber),
   new Color(PALETTE.primary),
   new Color(PALETTE.teal),
 ];
+
+// Frequency range the spectrum analyzer + ambient sampling span.
+export const AUDIO = { fMin: 40, fMax: 12000 };
+
+// Blend the warm palette across a 0..1 axis: coral → amber → purple → teal.
+// Shared by the layouts (base colour) and the reactors (live tint) so the
+// frequency→colour mapping is identical everywhere.
+const _rampTmp = new Color();
+export function paletteRamp(f, out = _rampTmp) {
+  const t = Math.max(0, Math.min(1, f)) * (ACCENTS.length - 1);
+  const i = Math.min(ACCENTS.length - 2, Math.floor(t));
+  return out.copy(ACCENTS[i]).lerp(ACCENTS[i + 1], t - i);
+}
 
 export const STATES = ['audio', 'visual', 'builds', 'contact'];
 

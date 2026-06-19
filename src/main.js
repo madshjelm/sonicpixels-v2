@@ -8,6 +8,7 @@ import {
 import { loadContent } from './content.js';
 import { deviceTier } from './config.js';
 import { PixelField } from './scene/PixelField.js';
+import { makeReactors } from './scene/reactors.js';
 import { AudioEngine } from './audio/AudioEngine.js';
 import { Overlay } from './ui/Overlay.js';
 import { Tuner } from './ui/Tuner.js';
@@ -54,6 +55,8 @@ async function main() {
   camera.position.set(0, 0, CAM_D);
 
   const field = new PixelField(scene, tier);
+  const reactors = makeReactors();
+  field.setReactor(reactors.audio);
 
   // --- Audio + UI -------------------------------------------------------
   const audio = new AudioEngine(content.tracks);
@@ -75,6 +78,7 @@ async function main() {
   const tuner = new Tuner((state) => {
     overlay.setState(state);
     field.applyLayout(state);
+    field.setReactor(reactors[state]);
   });
   overlayRoot.appendChild(tuner.el);
   app.appendChild(overlayRoot);
@@ -143,7 +147,7 @@ async function main() {
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     audio.update(dt);
-    field.update(dt, audio.levels, audio.playing && started);
+    field.update(dt, audio.features, audio.playing && started);
     renderer.render(scene, camera);
     adapt(dt);
     requestAnimationFrame(frame);

@@ -13,10 +13,12 @@ import { reducedMotion } from '../config.js';
 const WHITE = new Color(1, 1, 1);
 
 /**
- * The pixel field: one InstancedMesh of solid-colour tiles plus a matching
- * InstancedMesh of soft drop shadows. Layouts set per-tile targets
- * (position / size / colour); every frame the tiles ease toward those targets
- * and add audio reactivity on top.
+ * The pixel field is the shared substrate: one InstancedMesh of solid-colour
+ * tiles plus a matching InstancedMesh of soft drop shadows. It owns the tile
+ * buffers, eases them toward the current layout's targets, and composes the
+ * final transforms — but it does NOT decide how sound maps to tiles. That is
+ * the job of the active Reactor, which writes per-frame "drive" values
+ * (dScale / dLift / dBright / dColor) that this class reads when composing.
  */
 export class PixelField {
   constructor(scene, tier) {
@@ -26,8 +28,8 @@ export class PixelField {
     this.rows = tier.rows;
     this.state = 'audio';
     this.docked = 'right';
+    this.reactor = null;
     this.pulses = [];
-    this._beatCooldown = 0;
 
     const n = this.n;
     this.curPos = new Float32Array(n * 3);
@@ -37,10 +39,17 @@ export class PixelField {
     this.curColor = new Float32Array(n * 3);
     this.tgtColor = new Float32Array(n * 3);
 
-    // Stable per-tile data.
+    // Per-frame drive written by the active reactor.
+    this.dScale = new Float32Array(n); // extra scale fraction (0..~1.2)
+    this.dLift = new Float32Array(n); // vertical offset, in tile-sizes
+    this.dBright = new Float32Array(n); // 0..1 whiten amount
+    this.dColor = new Float32Array(n * 3); // optional per-tile tint
+    this.dColorMix = new Float32Array(n); // 0..1 blend toward dColor
+
+    // Stable per-tile identity.
     this.homeCol = new Int16Array(n);
     this.homeRow = new Int16Array(n);
-    this.band = new Float32Array(n * 3); // bass / mid / high weights
+    this.binFrac = new Float32Array(n); // 0..1 frequency position (by column)
     this.rand = new Float32Array(n);
     this.rand2 = new Float32Array(n);
 
@@ -51,16 +60,11 @@ export class PixelField {
       const row = Math.floor(i / this.cols);
       this.homeCol[i] = col;
       this.homeRow[i] = row;
-      const f = this.rows > 1 ? row / (this.rows - 1) : 0.5;
-      // Frequency band weights: low rows → bass, high rows → highs.
-      this.band[i * 3] = bump(f, 0.0, 0.5); // bass
-      this.band[i * 3 + 1] = bump(f, 0.5, 0.5); // mid
-      this.band[i * 3 + 2] = bump(f, 1.0, 0.5); // high
+      this.binFrac[i] = this.cols > 1 ? col / (this.cols - 1) : 0.5;
       this.rand[i] = rng();
       this.rand2[i] = rng();
     }
 
-    // Meshes.
     const geo = new PlaneGeometry(1, 1);
     this.tileMat = new MeshBasicMaterial({
       map: makeTileTexture(),
@@ -90,11 +94,15 @@ export class PixelField {
     this._c = new Color();
     scene.add(this.shadow);
     scene.add(this.mesh);
-
     this.time = 0;
   }
 
-  // Recompute the visible world extents when the camera / viewport changes.
+  setReactor(reactor) {
+    this.reactor = reactor;
+    if (reactor && reactor.enter) reactor.enter(this);
+  }
+
+  // Recompute visible world extents when the camera / viewport changes.
   setBounds(worldHalfW, worldHalfH, docked) {
     this.worldHalfW = worldHalfW;
     this.worldHalfH = worldHalfH;
@@ -113,6 +121,7 @@ export class PixelField {
       docked: this.docked,
       homeCol: this.homeCol,
       homeRow: this.homeRow,
+      binFrac: this.binFrac,
       rand: this.rand,
       rand2: this.rand2,
     };
@@ -134,71 +143,70 @@ export class PixelField {
     }
   }
 
-  // Send a ripple through the field from a normalized screen point (-1..1).
-  pulseAt(nx, ny, strength = 1) {
+  resetDrive() {
+    this.dScale.fill(0);
+    this.dLift.fill(0);
+    this.dBright.fill(0);
+    this.dColorMix.fill(0);
+  }
+
+  // Send a gentle, contained nudge from a normalized screen point (-1..1).
+  // Kept small and quick so it reads as a soft acknowledgement, not a wave.
+  pulseAt(nx, ny, strength = 0.5) {
     this.pulses.push({
       x: nx * this.worldHalfW,
       y: ny * this.worldHalfH,
-      r: 0,
-      speed: this.worldHalfW * 1.6,
-      width: this.worldHalfW * 0.22,
+      r: this.worldHalfW * 0.05,
+      speed: this.worldHalfW * 0.35,
+      width: this.worldHalfW * 0.16,
       strength,
-      life: 1,
+      life: 0.7,
       age: 0,
     });
-    if (this.pulses.length > 24) this.pulses.shift();
+    if (this.pulses.length > 16) this.pulses.shift();
   }
 
-  update(dt, levels, playing) {
+  // Summed pulse contribution at a world point (0..~strength).
+  samplePulse(x, y) {
+    let a = 0;
+    for (const p of this.pulses) {
+      const dx = x - p.x,
+        dy = y - p.y;
+      const d = (Math.sqrt(dx * dx + dy * dy) - p.r) / p.width;
+      a += p.strength * Math.exp(-d * d) * (1 - p.age / p.life);
+    }
+    return a;
+  }
+
+  update(dt, features, playing) {
     this.time += dt;
     const t = this.time;
-    const audio = this.state === 'audio';
 
-    // Easing rates — gentle ~2s rearrange, snappier under reduced motion.
+    // Advance pulses.
+    if (this.pulses.length) {
+      for (const p of this.pulses) {
+        p.age += dt;
+        p.r += p.speed * dt;
+      }
+      this.pulses = this.pulses.filter((p) => p.age < p.life);
+    }
+
+    // Ease layout (position / size / colour) toward the current targets.
     const posRate = reducedMotion ? 30 : 2.4;
     const sizeRate = reducedMotion ? 30 : 3.2;
     const colRate = reducedMotion ? 30 : 3.0;
-    const scaleGain = reducedMotion ? 0.3 : audio ? 0.95 : 0.5;
-    const reactAmt = audio ? 1.0 : this.state === 'contact' ? 0.32 : 0.5;
-    const bobAmt = reducedMotion ? 0 : audio ? 0.5 : 0.22;
-
-    // Advance pulses.
-    this._beatCooldown -= dt;
-    if (audio && levels.beat > 0.35 && this._beatCooldown <= 0) {
-      // Beats bloom outward from the centre of the grid.
-      this.pulses.push({
-        x: this.docked === 'right' ? -this.worldHalfW * 0.3 : 0,
-        y: this.docked === 'right' ? this.worldHalfH * 0.1 : this.worldHalfH * 0.38,
-        r: 0,
-        speed: this.worldHalfW * 1.4,
-        width: this.worldHalfW * 0.28,
-        strength: levels.beat,
-        life: 1,
-        age: 0,
-      });
-      this._beatCooldown = 0.18;
-    }
-    for (const p of this.pulses) {
-      p.age += dt;
-      p.r += p.speed * dt;
-    }
-    this.pulses = this.pulses.filter((p) => p.age < p.life);
-
     const cur = this.curPos,
       tgt = this.tgtPos,
       cs = this.curSize,
       ts = this.tgtSize,
       cc = this.curColor,
       tc = this.tgtColor;
-
     for (let i = 0; i < this.n; i++) {
       const i3 = i * 3;
-      // Slight per-tile variation so the field arrives like a soft wave.
       const vr = 0.85 + this.rand[i] * 0.4;
       const kp = 1 - Math.exp(-dt * posRate * vr);
       const ks = 1 - Math.exp(-dt * sizeRate * vr);
       const kc = 1 - Math.exp(-dt * colRate);
-
       cur[i3] += (tgt[i3] - cur[i3]) * kp;
       cur[i3 + 1] += (tgt[i3 + 1] - cur[i3 + 1]) * kp;
       cur[i3 + 2] += (tgt[i3 + 2] - cur[i3 + 2]) * kp;
@@ -206,61 +214,58 @@ export class PixelField {
       cc[i3] += (tc[i3] - cc[i3]) * kc;
       cc[i3 + 1] += (tc[i3 + 1] - cc[i3 + 1]) * kc;
       cc[i3 + 2] += (tc[i3 + 2] - cc[i3 + 2]) * kc;
+    }
 
-      // --- Reactivity ---
-      const activation =
-        this.band[i3] * levels.bass +
-        this.band[i3 + 1] * levels.mid +
-        this.band[i3 + 2] * levels.high;
+    // Let the active reactor write this frame's drive.
+    this.resetDrive();
+    if (this.reactor) this.reactor.update(this, features, dt, playing);
 
-      // Pulse contribution (beats + interactions).
-      let pulseAdd = 0;
-      const px = cur[i3],
-        py = cur[i3 + 1];
-      for (const p of this.pulses) {
-        const dx = px - p.x,
-          dy = py - p.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const d = (dist - p.r) / p.width;
-        pulseAdd += p.strength * Math.exp(-d * d) * (1 - p.age / p.life);
-      }
+    // Compose the final transforms + colours.
+    const idleAmt = reducedMotion ? 0 : 1;
+    const liftClamp = reducedMotion ? 0 : 1;
+    const scaleMul = reducedMotion ? 0.5 : 1;
+    const ds = this.dScale,
+      dl = this.dLift,
+      db = this.dBright,
+      dcol = this.dColor,
+      dmix = this.dColorMix;
+    for (let i = 0; i < this.n; i++) {
+      const i3 = i * 3;
+      const size = cs[i];
+      const idle = idleAmt * 0.015 * Math.sin(t * 0.9 + this.rand[i] * 6.283);
+      const scale = size * (1 + ds[i] * scaleMul + idle);
+      const lift = dl[i] * size * liftClamp;
+      const px = cur[i3];
+      const py = cur[i3 + 1] + lift;
+      const pz = cur[i3 + 2];
 
-      // Resting pattern so the field is never blank between/under quiet music.
-      const rest = playing
-        ? 0
-        : 0.12 *
-          (0.5 +
-            0.5 * Math.sin(t * 0.7 + this.homeCol[i] * 0.45 + this.homeRow[i] * 0.32));
-      const idle = reducedMotion
-        ? 0
-        : 0.04 * Math.sin(t * 0.9 + this.rand[i] * 6.28);
-
-      const act = Math.min(1.4, activation * reactAmt + pulseAdd + rest);
-
-      const scale = cs[i] * (1 + act * scaleGain + idle);
-      const bob = act * bobAmt * cs[i];
-
-      this.dummy.position.set(px, py + bob, cur[i3 + 2]);
+      this.dummy.position.set(px, py, pz);
       this.dummy.scale.set(scale, scale, 1);
-      this.dummy.rotation.z = 0;
       this.dummy.updateMatrix();
       this.mesh.setMatrixAt(i, this.dummy.matrix);
 
-      // Drop shadow: same tile, offset down/right and a touch larger.
-      const sOff = cs[i] * 0.16;
-      this.dummy.position.set(px + sOff, py + bob - sOff, cur[i3 + 2] - 0.1);
+      const sOff = size * 0.16;
+      this.dummy.position.set(px + sOff, py - sOff, pz - 0.1);
       const ss = scale * 1.1;
       this.dummy.scale.set(ss, ss, 1);
       this.dummy.updateMatrix();
       this.shadow.setMatrixAt(i, this.dummy.matrix);
 
-      // Colour: ease the base, then push toward a brighter/warmer version
-      // with activation.
-      const mix = Math.min(1, act * 0.8);
+      // Colour: eased base → optional reactor tint → whiten by brightness.
+      let r = cc[i3],
+        g = cc[i3 + 1],
+        b = cc[i3 + 2];
+      const mix = dmix[i];
+      if (mix > 0) {
+        r += (dcol[i3] - r) * mix;
+        g += (dcol[i3 + 1] - g) * mix;
+        b += (dcol[i3 + 2] - b) * mix;
+      }
+      const w = db[i] * 0.6;
       this._c.setRGB(
-        cc[i3] + (WHITE.r - cc[i3]) * mix * 0.55,
-        cc[i3 + 1] + (WHITE.g - cc[i3 + 1]) * mix * 0.45,
-        cc[i3 + 2] + (WHITE.b - cc[i3 + 2]) * mix * 0.4
+        r + (WHITE.r - r) * w,
+        g + (WHITE.g - g) * w,
+        b + (WHITE.b - b) * w
       );
       this.mesh.setColorAt(i, this._c);
     }
@@ -269,10 +274,4 @@ export class PixelField {
     this.shadow.instanceMatrix.needsUpdate = true;
     if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
   }
-}
-
-// A smooth bump centred at `c` with falloff `w`, evaluated at x in [0,1].
-function bump(x, c, w) {
-  const d = (x - c) / w;
-  return Math.max(0, Math.exp(-d * d));
 }

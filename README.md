@@ -175,12 +175,25 @@ custom domain set after each deploy. You just need the DNS records.
   state is just a different set of per-tile targets (position / size / colour);
   the tiles ease toward them over ~2s, so transitions are smooth and
   interruptible. `src/scene/layouts.js` defines the arrangements.
-- **Sound drives the visuals.** `src/audio/AudioEngine.js` runs the music
-  through an `AnalyserNode` and splits the FFT into **bass / mid / high** plus a
-  smoothed **energy** value and a **beat** pulse. In the Audio state these map
-  onto the LED matrix — bass lights the lower rows, highs the upper rows — and
-  beats bloom outward from the centre. Easing is asymmetric (quick to rise, slow
-  to fall) so it reads as musical, never jittery.
+- **The audio feature bus.** `src/audio/AudioEngine.js` runs the music through
+  an `AnalyserNode` and publishes a rich, shared feature set (`src/audio/
+  analysis.js` holds the pure, unit-tested DSP): the normalised spectrum,
+  log-spaced bands, **bass / mid / high / energy**, a **beat** pulse + phase,
+  an RMS **loudness**, a **spectral centroid** (brightness), **spectral flux** +
+  per-band **onsets**, and an **auto-gain** so quiet and loud tracks both look
+  alive. Easing is asymmetric (quick to rise, slow to fall) so it reads musical.
+- **Per-state reactors.** Each state owns a *reactor* (`src/scene/reactors.js`)
+  that maps the feature bus onto per-tile drive (scale / lift / brightness /
+  tint); `PixelField` is just the substrate that eases and composes. So every
+  state has its own relationship to the sound:
+  - **Audio** is a true **spectrum analyzer** — columns are frequency (low→high,
+    coral→teal), each column fills to its band's amplitude, with a slow
+    **peak-hold** cap. Settles to a calm resting wave when quiet.
+  - **Visual** tints the framing tiles by spectral brightness and gives them a
+    gentle spectrum shimmer while you browse.
+  - **Builds** shimmers quietly; hovering a card sends a small, contained nudge
+    through the nearby tiles (deliberately subtle, not a sweeping wave).
+  - **Contact** only breathes slowly with the loudness — the calmest state.
 - **Soft depth, no glow.** Tiles are flat solid colours with crisp rounded
   edges; a second instanced mesh renders a soft, blurred drop shadow behind
   them. The background is a gentle lavender radial gradient.
@@ -210,8 +223,10 @@ src/
   main.js             ← orchestrator (scene, loop, wiring, adaptive quality)
   config.js           ← palette, states, device tier, asset() helper
   content.js          ← loads content.json
-  audio/AudioEngine.js
-  scene/PixelField.js ← the InstancedMesh field + reactivity
+  audio/AudioEngine.js ← streaming + the audio feature bus
+  audio/analysis.js   ← pure spectral DSP (centroid, flux, log bands…)
+  scene/PixelField.js ← the InstancedMesh substrate (easing + compositing)
+  scene/reactors.js   ← per-state audio→tile mappings (analyzer, ambient…)
   scene/layouts.js    ← the four state arrangements
   scene/textures.js   ← tile + shadow sprites
   ui/Tuner.js         ← radio-band navigation

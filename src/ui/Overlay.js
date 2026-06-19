@@ -164,7 +164,7 @@ export class Overlay {
         const r = card.getBoundingClientRect();
         const nx = ((r.left + r.width / 2) / window.innerWidth) * 2 - 1;
         const ny = -(((r.top + r.height / 2) / window.innerHeight) * 2 - 1);
-        this.handlers.onPulse(nx, ny, 0.8);
+        this.handlers.onPulse(nx, ny, 0.5);
       };
       card.addEventListener('mouseenter', ripple);
       card.addEventListener('touchstart', ripple, { passive: true });

@@ -1,22 +1,14 @@
 import { Color } from 'three';
-import { ACCENTS, PALETTE } from '../config.js';
+import { ACCENTS, PALETTE, paletteRamp } from '../config.js';
 
 const SURFACE = new Color(PALETTE.surface);
-
-// Blend the warm palette across the rows: coral low → amber/purple mid → teal high.
-function rowColor(f) {
-  const stops = ACCENTS;
-  const seg = Math.max(0, Math.min(1, f)) * (stops.length - 1);
-  const i = Math.min(stops.length - 2, Math.floor(seg));
-  return stops[i].clone().lerp(stops[i + 1], seg - i);
-}
-
 const accent = (i) => ACCENTS[((i % ACCENTS.length) + ACCENTS.length) % ACCENTS.length];
 
 /**
- * Audio — a fixed LED matrix. Tiles sit in a rectangular grid; the colour
- * runs warm→cool up the rows. Docked to the left of the track panel on wide
- * screens, or above it on narrow ones.
+ * Audio — a fixed LED matrix used as a spectrum analyzer. Columns map to
+ * frequency (low→high, left→right) and so does the colour (coral→teal); the
+ * AudioReactor fills each column to the band's amplitude. Docked to the left
+ * of the track panel on wide screens, or above it on narrow ones.
  */
 function audioLayout(ctx, set) {
   const { cols, rows, worldHalfW, worldHalfH, docked } = ctx;
@@ -30,14 +22,12 @@ function audioLayout(ctx, set) {
   const size = Math.min(stepX, stepY) * 0.72;
 
   for (let i = 0; i < ctx.n; i++) {
-    const col = ctx.homeCol[i];
-    const row = ctx.homeRow[i];
-    const u = cols > 1 ? col / (cols - 1) : 0.5;
-    const v = rows > 1 ? row / (rows - 1) : 0.5;
+    const u = cols > 1 ? ctx.homeCol[i] / (cols - 1) : 0.5;
+    const v = rows > 1 ? ctx.homeRow[i] / (rows - 1) : 0.5;
     const x = (region.cx + (u - 0.5) * 2 * region.hw) * worldHalfW;
     const y = (region.cy + (v - 0.5) * 2 * region.hh) * worldHalfH;
     const z = (ctx.rand[i] - 0.5) * 0.2;
-    set(i, x, y, z, size, rowColor(v));
+    set(i, x, y, z, size, paletteRamp(u));
   }
 }
 
