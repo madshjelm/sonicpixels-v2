@@ -39,9 +39,8 @@ export class Overlay {
     );
   }
 
-  head(title, eyebrow, sub) {
+  head(title, sub) {
     return `<div class="state-head">
-      <p class="state-eyebrow">${eyebrow}</p>
       <h2 class="state-title">${title}</h2>
       ${sub ? `<p class="state-sub">${sub}</p>` : ''}
     </div>`;
@@ -51,14 +50,16 @@ export class Overlay {
   renderAudio() {
     const el = this.states.audio;
     el.innerHTML =
-      this.head('Audio', '◦ 88.1 — Now Playing', 'Watch the field listen. Pick a track; the grid lights up by frequency.') +
+      this.head('Audio', 'Watch the field listen. Pick a track; the grid lights up by frequency.') +
       `<div class="audio-stage">
         <aside class="audio-panel card panel">
           <div class="now-playing">
-            <img class="np-art" alt="" />
-            <div>
-              <p class="np-band">Now Playing</p>
-              <h3 class="np-title"></h3>
+            <div class="np-head">
+              <img class="np-art" alt="" />
+              <div class="np-meta">
+                <p class="np-band">Now Playing</p>
+                <h3 class="np-title"></h3>
+              </div>
             </div>
             <p class="np-desc"></p>
             <div class="transport">
@@ -120,7 +121,7 @@ export class Overlay {
   renderVisual() {
     const el = this.states.visual;
     el.innerHTML =
-      this.head('Visual', '◦ 94.3 — Gallery', 'Pieces and experiments. Tap to open.') +
+      this.head('Visual', 'Pieces and experiments. Tap to open.') +
       `<div class="state-body"><div class="card-grid visual-grid"></div></div>`;
     const grid = el.querySelector('.visual-grid');
     this.content.visuals.forEach((v, i) => {
@@ -148,7 +149,7 @@ export class Overlay {
   renderBuilds() {
     const el = this.states.builds;
     el.innerHTML =
-      this.head('Builds', '◦ 101.7 — Projects', 'Things I have made. Hover sends a ripple through the field.') +
+      this.head('Builds', 'Things I have made. Hover sends a ripple through the field.') +
       `<div class="state-body"><div class="card-grid builds-grid"></div></div>`;
     const grid = el.querySelector('.builds-grid');
     this.content.builds.forEach((b) => {
@@ -180,7 +181,7 @@ export class Overlay {
       .map((l) => `<a href="${l.url}" target="_blank" rel="noopener">${l.label}</a>`)
       .join('');
     el.innerHTML =
-      this.head('Contact', '◦ 107.9 — Say Hi', '') +
+      this.head('Contact', '') +
       `<div class="state-body">
         <div class="card contact-card panel">
           ${c.intro ? `<p class="ct-intro">${c.intro}</p>` : ''}

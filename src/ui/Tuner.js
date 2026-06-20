@@ -1,8 +1,5 @@
 import { STATES, STATE_LABELS } from '../config.js';
 
-// Flavour frequencies for the readout — purely cosmetic, like a radio dial.
-const FREQS = ['88.1', '94.3', '101.7', '107.9'];
-
 /**
  * The tuner: a radio-band strip docked at the bottom. Click a label, drag the
  * needle, swipe the band, or use the arrow keys. The needle follows the
@@ -33,7 +30,6 @@ export class Tuner {
           <div class="tuner-ticks"></div>
           <div class="tuner-needle"></div>
         </div>
-        <div class="tuner-readout"></div>
       </div>`;
     this.el = el;
 
@@ -61,7 +57,6 @@ export class Tuner {
 
     this.band = el.querySelector('.tuner-band');
     this.needle = el.querySelector('.tuner-needle');
-    this.readout = el.querySelector('.tuner-readout');
 
     this.bindDrag();
     this.render(true);
@@ -135,7 +130,10 @@ export class Tuner {
   renderLabels() {
     this.labelEls.forEach((el, i) => el.classList.toggle('active', i === this.index));
     this.band.setAttribute('aria-valuenow', this.index);
-    this.readout.textContent = `◦ ${FREQS[this.index]} MHz — ${STATE_LABELS[STATES[this.index]].toUpperCase()}`;
+    this.band.setAttribute(
+      'aria-valuetext',
+      STATE_LABELS[STATES[this.index]]
+    );
   }
 
   render(immediate = false) {

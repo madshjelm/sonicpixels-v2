@@ -115,15 +115,6 @@ body {
   margin-bottom: clamp(14px, 2.4vh, 28px);
 }
 
-.state-eyebrow {
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--primary-deep);
-  margin: 0 0 8px;
-}
-
 .state-title {
   font-size: clamp(28px, 4.4vw, 46px);
   font-weight: 700;
@@ -145,7 +136,9 @@ body {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-bottom: 24px;
+  padding-bottom: 32px;
+  touch-action: pan-y;
+  overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: var(--primary) transparent;
@@ -180,13 +173,15 @@ body {
   min-height: 0;
   display: flex;
   justify-content: flex-end;
-  align-items: stretch;
+  align-items: center;
   pointer-events: none; /* let the LED matrix show through the empty area */
 }
 
 .audio-panel {
   pointer-events: auto;
   width: clamp(300px, 34vw, 400px);
+  max-height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -196,39 +191,57 @@ body {
 }
 
 .now-playing {
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: clamp(18px, 2vw, 26px);
+  padding: clamp(16px, 1.8vw, 24px);
   border-bottom: 1px solid rgba(46, 44, 80, 0.08);
+}
+
+.np-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.np-meta {
+  min-width: 0;
 }
 
 .np-band {
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--primary-deep);
+  margin: 0 0 4px;
 }
 
 .np-title {
-  font-size: clamp(26px, 3.4vw, 40px);
+  font-size: clamp(20px, 2.2vw, 28px);
   font-weight: 700;
   margin: 0;
-  line-height: 1.1;
+  line-height: 1.12;
 }
 
 .np-desc {
   color: var(--ink-soft);
-  line-height: 1.55;
+  line-height: 1.5;
   margin: 0;
-  font-size: 15px;
+  font-size: 14px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .np-art {
-  width: 92px;
-  height: 92px;
-  border-radius: 14px;
+  width: 64px;
+  height: 64px;
+  flex: 0 0 auto;
+  border-radius: 12px;
   object-fit: cover;
   box-shadow: var(--shadow-soft);
 }
@@ -273,12 +286,25 @@ body {
 }
 
 .tracklist {
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   gap: 10px;
   padding: clamp(14px, 1.6vw, 20px);
   overflow-y: auto;
   min-height: 0;
+  touch-action: pan-y;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) transparent;
+}
+.tracklist::-webkit-scrollbar {
+  width: 8px;
+}
+.tracklist::-webkit-scrollbar-thumb {
+  background: rgba(103, 120, 214, 0.4);
+  border-radius: 8px;
 }
 
 .track-row {
@@ -629,16 +655,6 @@ body {
   background: var(--primary);
   box-shadow: 0 2px 6px rgba(46, 44, 80, 0.35);
 }
-.tuner-readout {
-  text-align: center;
-  font-family: var(--mono);
-  font-size: 10.5px;
-  letter-spacing: 0.14em;
-  color: var(--ink-soft);
-  margin-top: 8px;
-  text-transform: uppercase;
-}
-
 /* ---------------------------------------------------------------------- */
 /* Landing / loader / lightbox                                           */
 /* ---------------------------------------------------------------------- */
@@ -652,12 +668,15 @@ body {
   justify-content: center;
   gap: 28px;
   text-align: center;
+  /* Blur and soften the live field behind so the title reads cleanly. */
   background: radial-gradient(
     120% 120% at 50% 40%,
-    rgba(227, 226, 239, 0.4),
-    rgba(217, 216, 230, 0.2)
+    rgba(229, 228, 240, 0.72),
+    rgba(217, 216, 230, 0.6)
   );
-  transition: opacity 0.8s var(--ease);
+  backdrop-filter: blur(18px) saturate(1.05);
+  -webkit-backdrop-filter: blur(18px) saturate(1.05);
+  transition: opacity 0.8s var(--ease), backdrop-filter 0.8s var(--ease);
 }
 #landing.hidden {
   opacity: 0;
@@ -872,9 +891,10 @@ body {
     align-items: flex-end;
     justify-content: stretch;
   }
+  /* A scrollable bottom sheet that always shows the controls + full list. */
   .audio-panel {
     width: 100%;
-    max-height: 56%;
+    max-height: 70%;
   }
   .state {
     padding: clamp(16px, 5vw, 28px);
@@ -886,12 +906,24 @@ body {
   .state-head {
     margin-bottom: 12px;
   }
+  .state-title {
+    font-size: clamp(26px, 8vw, 34px);
+  }
   .tuner-label {
     letter-spacing: 0.04em;
     padding: 8px 2px;
   }
   .np-art {
-    display: none;
+    width: 52px;
+    height: 52px;
+  }
+  .np-desc {
+    -webkit-line-clamp: 2;
+    font-size: 13px;
+  }
+  .now-playing {
+    gap: 10px;
+    padding: 16px;
   }
 }
 
