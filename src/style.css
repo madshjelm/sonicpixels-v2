@@ -73,10 +73,6 @@ body {
   flex-direction: column;
 }
 
-#overlay .panel {
-  pointer-events: auto;
-}
-
 #state-root {
   flex: 1;
   position: relative;
@@ -92,7 +88,11 @@ body {
   padding-bottom: 0;
   opacity: 0;
   transform: translateY(14px);
-  transition: opacity 0.55s var(--ease), transform 0.55s var(--ease);
+  /* Hidden states are made fully inert (visibility flips after the fade) so
+     they can't intercept clicks, touches, or scrolling from the active one. */
+  visibility: hidden;
+  transition: opacity 0.55s var(--ease), transform 0.55s var(--ease),
+    visibility 0s linear 0.55s;
   pointer-events: none;
   overflow: hidden;
 }
@@ -100,7 +100,10 @@ body {
 .state.active {
   opacity: 1;
   transform: none;
+  visibility: visible;
   pointer-events: none;
+  transition: opacity 0.55s var(--ease), transform 0.55s var(--ease),
+    visibility 0s;
 }
 
 .state.active .panel,
@@ -178,7 +181,6 @@ body {
 }
 
 .audio-panel {
-  pointer-events: auto;
   width: clamp(300px, 34vw, 400px);
   max-height: 100%;
   min-height: 0;
@@ -550,7 +552,7 @@ body {
 /* ---------------------------------------------------------------------- */
 #tuner {
   flex: 0 0 auto;
-  pointer-events: auto;
+  pointer-events: none; /* inert until it fades in after pressing play */
   padding: 0 clamp(14px, 3vw, 40px)
     calc(env(safe-area-inset-bottom, 0px) + clamp(14px, 2vh, 22px));
   opacity: 0;
@@ -560,6 +562,7 @@ body {
 #tuner.visible {
   opacity: 1;
   transform: none;
+  pointer-events: auto;
 }
 
 .tuner-inner {
@@ -608,7 +611,7 @@ body {
   position: relative;
   height: 40px;
   cursor: grab;
-  touch-action: pan-y;
+  touch-action: none; /* horizontal drag/swipe is handled in JS */
 }
 .tuner-band:active {
   cursor: grabbing;

@@ -108,6 +108,9 @@ export class Tuner {
     window.addEventListener('keydown', (e) => {
       const tag = document.activeElement?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      // Ignore until the tuner is in play, and while a lightbox is open.
+      if (!this.el.classList.contains('visible')) return;
+      if (document.querySelector('#lightbox.open')) return;
       if (e.key === 'ArrowLeft') {
         this.setIndex(this.index - 1);
         e.preventDefault();
