@@ -114,7 +114,8 @@ async function main() {
   }
   window.addEventListener('resize', resize);
   resize();
-  overlay.setState('audio');
+  // The DOM states stay hidden behind the landing; the audio panel only
+  // appears once the user presses play (see the landing handler above).
 
   // --- Adaptive quality (screen size + DPR + frame time) ---------------
   let qaLevel = 0;
