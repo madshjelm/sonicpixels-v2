@@ -66,7 +66,7 @@
     {
       "title": "Sonic Pixels",
       "description": "This site. A single audio-reactive Three.js scene where a field of solid-colour tiles listens to whatever's playing.",
-      "tags": ["Three.js", "Web Audio", "Vite"],
+      "tags": ["Claude Code", "ChatGPT Codex"],
       "url": "https://sonicpixels.dk"
     },
     {
@@ -76,16 +76,16 @@
       "url": "https://momentum-ai.dk/"
     },
     {
-      "title": "Frequency Tuner",
-      "description": "Placeholder build. The radio-band navigation component. Swap in your own project and link.",
-      "tags": ["UI", "Interaction"],
-      "url": "https://example.com"
+      "title": "Ulf Hjelmar",
+      "description": "One-page website build for a client.",
+      "tags": ["Wordpress", "Elementor"],
+      "url": "https://ulfhjelmar.dk"
     },
     {
-      "title": "Studio Tools",
-      "description": "Placeholder build. A spot for an internal tool or experiment. Add or remove builds by editing content.json.",
-      "tags": ["Audio", "Tools"],
-      "url": "https://example.com"
+      "title": "3D AI workshop",
+      "description": "Interactive web experience built to demonstrate the capabilities of AI assisted coding",
+      "tags": ["Claude Code", "ChatGPT Codex"],
+      "url": "https://momentum-ai.dk/3d-ai-workshop/"
     }
   ],
   "contact": {
