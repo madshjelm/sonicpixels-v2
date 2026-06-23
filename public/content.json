@@ -26,9 +26,9 @@
   ],
   "visuals": [
     {
-      "type": "image",
-      "file": "media/visual-1.svg",
-      "title": "Tile Study 01",
+      "type": "video",
+      "file": "media/AI%20Videoproduktion.mp4",
+      "title": "AI videoproduktion",
       "description": "Placeholder visual. Drop an image or video into /public/media and describe it here."
     },
     {
