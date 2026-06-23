@@ -154,7 +154,7 @@ async function main() {
 
     // Visual / Builds: a clean ceiling just below the header text so tiles
     // never sit over it, filling the full width down to above the tuner.
-    top = headBottom + PAD * 1.5;
+    top = headBottom + PAD;
     bottom = Math.max(vh - tunerH - PAD * 1.5, top + 60);
     return { region: rectToRegion(left, top, right, bottom, vw, vh), docked };
   }
@@ -181,7 +181,31 @@ async function main() {
     acc = 0;
   }
   window.addEventListener('resize', resize);
+  // Mobile browsers resize the visual viewport when the URL bar shows/hides,
+  // which changes the player panel's height. Track it so the matrix re-fits.
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', resize);
   resize();
+
+  // Keep the Audio matrix fitted above the player panel whenever that panel
+  // changes size (URL bar, fonts, content) or finishes animating in. This is
+  // what keeps the tiles from ending up hidden behind the player on mobile.
+  let refitQueued = false;
+  const refitAudio = () => {
+    if (field.state !== 'audio' || refitQueued) return;
+    refitQueued = true;
+    requestAnimationFrame(() => {
+      refitQueued = false;
+      if (field.state === 'audio') field.applyLayout('audio');
+    });
+  };
+  const audioPanelEl = overlay.states.audio.querySelector('.audio-panel');
+  if (audioPanelEl && 'ResizeObserver' in window) {
+    new ResizeObserver(refitAudio).observe(audioPanelEl);
+  }
+  overlay.states.audio.addEventListener('transitionend', (e) => {
+    if (e.propertyName === 'transform') refitAudio();
+  });
+
   // The DOM states stay hidden behind the landing; the audio panel only
   // appears once the user presses play (see the landing handler above).
 
