@@ -393,7 +393,7 @@ body {
 }
 
 /* ---------------------------------------------------------------------- */
-/* Visual + Builds grids                                                  */
+/* Visual + Web grids                                                     */
 /* ---------------------------------------------------------------------- */
 .visual-grid {
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -441,25 +441,25 @@ body {
   overflow: hidden;
 }
 
-.builds-grid {
+.web-grid {
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 }
-.build-card {
+.web-card {
   padding: clamp(18px, 1.8vw, 26px);
   display: flex;
   flex-direction: column;
   gap: 12px;
   transition: transform 0.22s var(--ease), box-shadow 0.22s;
 }
-.build-card:hover {
+.web-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow);
 }
-.build-card h3 {
+.web-card h3 {
   margin: 0;
   font-size: 19px;
 }
-.build-card p {
+.web-card p {
   margin: 0;
   color: var(--ink-soft);
   font-size: 14px;
@@ -479,7 +479,7 @@ body {
   background: var(--surface-2);
   color: var(--primary-deep);
 }
-.build-link {
+.web-link {
   align-self: flex-start;
   font-weight: 600;
   font-size: 14px;
@@ -489,7 +489,7 @@ body {
   align-items: center;
   gap: 6px;
 }
-.build-link:hover {
+.web-link:hover {
   text-decoration: underline;
 }
 
@@ -693,8 +693,13 @@ body {
   line-height: 1;
   color: var(--ink);
 }
-.landing-title .dot {
-  color: var(--coral);
+.landing-title .title-tile {
+  display: inline-block;
+  width: 0.22em;
+  height: 0.22em;
+  margin-left: 0.08em;
+  background: var(--coral);
+  vertical-align: 0.02em;
 }
 .landing-tag {
   font-family: var(--mono);
@@ -767,7 +772,7 @@ body {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ink-soft);
-  margin-top: -10px;
+  margin-top: 4px;
   opacity: 0;
   animation: cueIn 0.6s 0.15s var(--ease) forwards;
 }

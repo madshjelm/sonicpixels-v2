@@ -152,7 +152,7 @@ async function main() {
       return { region: rectToRegion(left, top, right, bottom, vw, vh), docked };
     }
 
-    // Visual / Builds: a clean ceiling just below the header text so tiles
+    // Visual / Web: a clean ceiling just below the header text so tiles
     // never sit over it, filling the full width down to above the tuner.
     top = headBottom + PAD;
     bottom = Math.max(vh - tunerH - PAD * 1.5, top + 60);

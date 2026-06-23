@@ -6,7 +6,7 @@ export function renderFallback(content, mount) {
   const tracks = content.tracks
     .map(
       (t) => `
-      <article class="card build-card">
+      <article class="card web-card">
         <h3>${t.title || 'Untitled'}</h3>
         <p>${t.description || ''}</p>
         <audio controls preload="none" src="${asset(t.file)}"></audio>
@@ -28,14 +28,14 @@ export function renderFallback(content, mount) {
     )
     .join('');
 
-  const builds = content.builds
+  const web = content.web
     .map(
       (b) => `
-      <article class="card build-card">
+      <article class="card web-card">
         <h3>${b.title || ''}</h3>
         <p>${b.description || ''}</p>
         <div class="tag-row">${(b.tags || []).map((t) => `<span class="tag">${t}</span>`).join('')}</div>
-        ${b.url ? `<a class="build-link" href="${b.url}" target="_blank" rel="noopener">Open ↗</a>` : ''}
+        ${b.url ? `<a class="web-link" href="${b.url}" target="_blank" rel="noopener">Open ↗</a>` : ''}
       </article>`
     )
     .join('');
@@ -48,11 +48,11 @@ export function renderFallback(content, mount) {
   mount.innerHTML = `
     <div class="fallback">
       <div class="fallback-inner">
-        <h1>Sonic Pixels<span style="color:var(--coral)">.</span></h1>
+        <h1>Sonic Pixels<span style="display:inline-block;width:0.22em;height:0.22em;margin-left:0.08em;background:var(--coral);vertical-align:0.02em"></span></h1>
         <p class="state-sub">A simplified view — your browser does not support WebGL, so the reactive scene is turned off. All the content is here.</p>
-        <section><h2>Audio</h2><div class="card-grid builds-grid">${tracks}</div></section>
+        <section><h2>Audio</h2><div class="card-grid web-grid">${tracks}</div></section>
         <section><h2>Visual</h2><div class="card-grid visual-grid">${visuals}</div></section>
-        <section><h2>Builds</h2><div class="card-grid builds-grid">${builds}</div></section>
+        <section><h2>Web</h2><div class="card-grid web-grid">${web}</div></section>
         <section><h2>Contact</h2>
           <div class="card contact-card">
             ${c.intro ? `<p class="ct-intro">${c.intro}</p>` : ''}

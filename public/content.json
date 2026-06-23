@@ -1,7 +1,7 @@
 {
   "site": {
     "title": "Sonic Pixels",
-    "tagline": "Sound you can see.",
+    "tagline": "Mads-Bjørn Hjelmar - Multimedia freelancing",
     "intro": "A field of pixels that listens to the music."
   },
   "tracks": [
@@ -62,39 +62,44 @@
       "description": "Placeholder visual. Replace with your own work via content.json."
     }
   ],
-  "builds": [
+  "web": [
     {
       "title": "Sonic Pixels",
       "description": "This site. A single audio-reactive Three.js scene where a field of solid-colour tiles listens to whatever's playing.",
-      "tags": ["Three.js", "Web Audio", "Vite"],
+      "tags": ["Claude Code", "ChatGPT Codex"],
       "url": "https://sonicpixels.dk"
     },
     {
-      "title": "Tile Engine",
-      "description": "Placeholder build. The instanced-mesh renderer behind the pixel field — describe a real project here.",
-      "tags": ["WebGL", "Instancing"],
-      "url": "https://example.com"
+      "title": "Momentum AI",
+      "description": "Me and my brothers company. We make custom tailored workshops for companies to help them utilize LLM's",
+      "tags": ["Wordpress", "Elementor"],
+      "url": "https://momentum-ai.dk/"
     },
     {
-      "title": "Frequency Tuner",
-      "description": "Placeholder build. The radio-band navigation component. Swap in your own project and link.",
-      "tags": ["UI", "Interaction"],
-      "url": "https://example.com"
+      "title": "Ulf Hjelmar",
+      "description": "One-page website build for a client.",
+      "tags": ["Wordpress", "Elementor"],
+      "url": "https://ulfhjelmar.dk"
     },
     {
-      "title": "Studio Tools",
-      "description": "Placeholder build. A spot for an internal tool or experiment. Add or remove builds by editing content.json.",
-      "tags": ["Audio", "Tools"],
-      "url": "https://example.com"
+      "title": "3D AI workshop",
+      "description": "Interactive web experience built to demonstrate the capabilities of AI assisted coding",
+      "tags": ["Claude Code", "ChatGPT Codex"],
+      "url": "https://momentum-ai.dk/3d-ai-workshop/"
     }
   ],
   "contact": {
-    "intro": "Let's make something that listens.",
-    "email": "hello@sonicpixels.dk",
+    "intro": "Available for multimedia projects and web development",
+    "email": "mbsh@momentum-ai.dk",
     "links": [
-      { "label": "Instagram", "url": "https://instagram.com" },
-      { "label": "GitHub", "url": "https://github.com/madshjelm" },
-      { "label": "Bandcamp", "url": "https://bandcamp.com" }
+      {
+        "label": "LinkedIn",
+        "url": "https://www.linkedin.com/in/mads-bjoern-hjelmar/"
+      },
+      {
+        "label": "Momentum AI",
+        "url": "https://momentum-ai.dk/"
+      }
     ]
   }
 }

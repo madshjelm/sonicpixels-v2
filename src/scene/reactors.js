@@ -116,9 +116,9 @@ export class VisualReactor {
 }
 
 /* ----------------------------------------------------------------------- */
-/* Builds — ordered grid: calm spectrum shimmer + a contained hover nudge   */
+/* Web — ordered grid: calm spectrum shimmer + a contained hover nudge      */
 /* ----------------------------------------------------------------------- */
-export class BuildsReactor {
+export class WebReactor {
   enter(field) {
     this.cols = field.cols;
     this.raw = new Float32Array(this.cols);
@@ -184,7 +184,7 @@ export function makeReactors() {
   return {
     audio: new AudioReactor(),
     visual: new VisualReactor(),
-    builds: new BuildsReactor(),
+    web: new WebReactor(),
     contact: new ContactReactor(),
   };
 }

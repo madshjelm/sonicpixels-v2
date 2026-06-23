@@ -7,8 +7,8 @@ export class Landing {
     this.el = document.createElement('div');
     this.el.id = 'landing';
     this.el.innerHTML = `
-      <h1 class="landing-title">Sonic Pixels<span class="dot">.</span></h1>
-      <p class="landing-tag">Sound you can see</p>
+      <h1 class="landing-title">Sonic Pixels<span class="title-tile" aria-hidden="true"></span></h1>
+      <p class="landing-tag">Mads-Bjørn Hjelmar - Multimedia freelancing</p>
       <div class="loader">
         <div class="loader-bar"><div class="loader-fill"></div></div>
         <div class="loader-text">Warming up…</div>
