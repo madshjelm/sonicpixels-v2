@@ -86,11 +86,11 @@ in **`public/media/`**. To add a track, visual, or build, drop a file in
 
   // CONTACT — the calmest state.
   "contact": {
-    "intro": "Let's make something that listens.",
-    "email": "hello@sonicpixels.dk",
+    "intro": "Available for multimedia projects and web development",
+    "email": "mbsh@momentum-ai.dk",
     "links": [
-      { "label": "Instagram", "url": "https://instagram.com/…" },
-      { "label": "GitHub", "url": "https://github.com/madshjelm" }
+      { "label": "LinkedIn", "url": "https://www.linkedin.com/in/mads-bjoern-hjelmar/" },
+      { "label": "Momentum AI", "url": "https://momentum-ai.dk/" }
     ]
   }
 }
