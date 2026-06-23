@@ -26,6 +26,7 @@ export class AudioEngine {
     this.index = 0;
     this.ready = false;
     this.playing = false;
+    this._resumeAfterVideo = false; // restore music when the video player closes
     this.onState = () => {};
 
     this._energyAvg = 0;
@@ -82,6 +83,17 @@ export class AudioEngine {
     this.master = this.ctx.createGain();
     this.master.gain.value = 0.9;
 
+    // A lowpass "sweep" on the audible output (placed after the analyser, so
+    // the visual field keeps reacting to the full signal). Open by default;
+    // opening a video ramps the cutoff down to duck the music, then back up
+    // again on close. See duckForVideo / restoreFromVideo.
+    this.sweep = this.ctx.createBiquadFilter();
+    this.sweep.type = 'lowpass';
+    this.sweep.Q.value = 0.5; // gentle slope, no resonant peak at the cutoff
+    this.sweepOpen = Math.min(20000, this.ctx.sampleRate / 2 - 1);
+    this.sweepClosed = 120; // Hz left audible at the bottom of the sweep
+    this.sweep.frequency.value = this.sweepOpen;
+
     this.gains = this.elements.map((el) => {
       const src = this.ctx.createMediaElementSource(el);
       const gain = this.ctx.createGain();
@@ -91,7 +103,8 @@ export class AudioEngine {
       return gain;
     });
     this.analyser.connect(this.master);
-    this.master.connect(this.ctx.destination);
+    this.master.connect(this.sweep);
+    this.sweep.connect(this.ctx.destination);
 
     // Precompute FFT bin ranges from the real context sample rate.
     const nyquist = this.ctx.sampleRate / 2;
@@ -189,6 +202,43 @@ export class AudioEngine {
   }
   prev() {
     this.select(this.index - 1);
+  }
+
+  // Duck the music for a video: sweep the lowpass cutoff down (treble first,
+  // bass last) over `time` seconds, then pause once it has closed. No-op if
+  // nothing is playing, so a video opened over silence stays silent.
+  duckForVideo(time = 1.4) {
+    if (!this.ctx || !this.playing) return;
+    this._resumeAfterVideo = true;
+    const now = this.ctx.currentTime;
+    const f = this.sweep.frequency;
+    f.cancelScheduledValues(now);
+    f.setValueAtTime(f.value, now);
+    f.exponentialRampToValueAtTime(this.sweepClosed, now + time);
+    clearTimeout(this._videoPauseTimer);
+    this._videoPauseTimer = setTimeout(() => {
+      this.elements[this.activeEl].pause();
+      this.playing = false;
+      this.onState();
+    }, time * 1000 + 30);
+  }
+
+  // Reverse of duckForVideo: resume and sweep the cutoff back up (bass first,
+  // full spectrum last). No-op unless a video actually ducked the music, so we
+  // never auto-start a track the user had paused.
+  restoreFromVideo(time = 1.4) {
+    if (!this.ctx || !this._resumeAfterVideo) return;
+    this._resumeAfterVideo = false;
+    clearTimeout(this._videoPauseTimer);
+    this.ctx.resume?.();
+    this.elements[this.activeEl].play().catch(() => {});
+    this.playing = true;
+    this.onState();
+    const now = this.ctx.currentTime;
+    const f = this.sweep.frequency;
+    f.cancelScheduledValues(now);
+    f.setValueAtTime(f.value, now);
+    f.exponentialRampToValueAtTime(this.sweepOpen, now + time);
   }
 
   get current() {

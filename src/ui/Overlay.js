@@ -7,6 +7,10 @@ const ICON = {
   next: '<svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg>',
 };
 
+// Must match --lb-fade in style.css: how long the lightbox blur/darken takes
+// to recede on close, after which the media element is cleared.
+const FADE_MS = 1400;
+
 /**
  * Builds and owns the DOM content layer: the four state panels, the audio
  * track panel, the visual lightbox, and the contact card. Reads everything
@@ -15,7 +19,8 @@ const ICON = {
 export class Overlay {
   constructor(content, handlers) {
     this.content = content;
-    this.handlers = handlers; // { onSelectTrack, onTransport, onPulse }
+    // { onSelectTrack, onTransport, onPulse, onMediaOpen, onMediaClose }
+    this.handlers = handlers;
     this.root = document.createElement('div');
     this.root.id = 'state-root';
     this.states = {};
@@ -216,6 +221,7 @@ export class Overlay {
   openLightbox(v) {
     const lb = this.lightbox;
     const media = lb.querySelector('.lb-media');
+    clearTimeout(this._mediaClearTimer); // cancel a pending clear from a quick close→open
     if (v.type === 'video') {
       media.innerHTML = `<video src="${asset(v.file)}" controls autoplay playsinline></video>`;
     } else {
@@ -224,10 +230,22 @@ export class Overlay {
     lb.querySelector('h3').textContent = v.title || '';
     lb.querySelector('p').textContent = v.description || '';
     lb.classList.add('open');
+    this.handlers.onMediaOpen?.(v); // ducks the music for videos
   }
 
   closeLightbox() {
-    this.lightbox.classList.remove('open');
-    this.lightbox.querySelector('.lb-media').innerHTML = '';
+    const lb = this.lightbox;
+    if (!lb.classList.contains('open')) return;
+    lb.classList.remove('open');
+    this.handlers.onMediaClose?.(); // sweeps the music back in
+    // Stop the video's own audio at once so it doesn't overlap the returning
+    // music; keep the paused frame so the backdrop can fade out, then clear it
+    // once the fade (--lb-fade) has finished.
+    const vid = lb.querySelector('.lb-media video');
+    if (vid) vid.pause();
+    clearTimeout(this._mediaClearTimer);
+    this._mediaClearTimer = setTimeout(() => {
+      lb.querySelector('.lb-media').innerHTML = '';
+    }, FADE_MS);
   }
 }
