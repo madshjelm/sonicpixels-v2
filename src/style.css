@@ -693,8 +693,13 @@ body {
   line-height: 1;
   color: var(--ink);
 }
-.landing-title .dot {
-  color: var(--coral);
+.landing-title .title-tile {
+  display: inline-block;
+  width: 0.22em;
+  height: 0.22em;
+  margin-left: 0.08em;
+  background: var(--coral);
+  vertical-align: 0.02em;
 }
 .landing-tag {
   font-family: var(--mono);
@@ -767,7 +772,7 @@ body {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ink-soft);
-  margin-top: -10px;
+  margin-top: 4px;
   opacity: 0;
   animation: cueIn 0.6s 0.15s var(--ease) forwards;
 }
