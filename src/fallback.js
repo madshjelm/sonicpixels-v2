@@ -48,7 +48,7 @@ export function renderFallback(content, mount) {
   mount.innerHTML = `
     <div class="fallback">
       <div class="fallback-inner">
-        <h1>Sonic Pixels<span style="color:var(--coral)">.</span></h1>
+        <h1>Sonic Pixels<span style="display:inline-block;width:0.22em;height:0.22em;margin-left:0.08em;background:var(--coral);vertical-align:0.02em"></span></h1>
         <p class="state-sub">A simplified view — your browser does not support WebGL, so the reactive scene is turned off. All the content is here.</p>
         <section><h2>Audio</h2><div class="card-grid builds-grid">${tracks}</div></section>
         <section><h2>Visual</h2><div class="card-grid visual-grid">${visuals}</div></section>
