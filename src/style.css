@@ -894,11 +894,11 @@ body {
     align-items: flex-end;
     justify-content: stretch;
   }
-  /* A scrollable bottom sheet that always shows the controls + full list,
+  /* A scrollable bottom sheet that always shows the controls + list,
      held clear of the tuner by a small gap. */
   .audio-panel {
     width: 100%;
-    max-height: 60%;
+    max-height: 64%;
     margin-bottom: clamp(10px, 1.6vh, 16px);
   }
   .state {
@@ -918,17 +918,44 @@ body {
     letter-spacing: 0.04em;
     padding: 8px 2px;
   }
+  /* Compact the now-playing header so the track list has real room. */
   .np-art {
-    width: 52px;
-    height: 52px;
+    width: 46px;
+    height: 46px;
+  }
+  .np-title {
+    font-size: 18px;
   }
   .np-desc {
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 1;
     font-size: 13px;
   }
   .now-playing {
+    gap: 8px;
+    padding: 14px;
+  }
+  .transport {
+    margin-top: 2px;
     gap: 10px;
-    padding: 16px;
+  }
+  .t-btn {
+    width: 42px;
+    height: 42px;
+  }
+  .t-btn.play {
+    width: 52px;
+    height: 52px;
+  }
+  .tracklist {
+    padding: 10px 14px 14px;
+    gap: 8px;
+  }
+  .track-row {
+    padding: 8px 10px;
+  }
+  .track-row img {
+    width: 40px;
+    height: 40px;
   }
 }
 
