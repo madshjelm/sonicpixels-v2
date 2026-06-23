@@ -16,6 +16,7 @@
   --font: 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --mono: 'Space Mono', ui-monospace, 'SFMono-Regular', monospace;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --lb-fade: 1.4s; /* lightbox blur/darken build + recede; matches DUCK_SECS */
 }
 
 * {
@@ -791,19 +792,34 @@ body {
   position: fixed;
   inset: 0;
   z-index: 8;
-  display: none;
+  display: flex; /* always laid out; open/close is driven by opacity below */
   align-items: center;
   justify-content: center;
   padding: clamp(16px, 4vw, 48px);
+  background: rgba(46, 44, 80, 0);
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none; /* never intercept clicks on the page when closed */
+  transition: opacity var(--lb-fade) var(--ease),
+    background var(--lb-fade) var(--ease),
+    backdrop-filter var(--lb-fade) var(--ease),
+    -webkit-backdrop-filter var(--lb-fade) var(--ease),
+    visibility 0s linear var(--lb-fade); /* stay visible through the fade-out */
+}
+#lightbox.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
   background: rgba(46, 44, 80, 0.55);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  opacity: 0;
-  transition: opacity 0.35s var(--ease);
-}
-#lightbox.open {
-  display: flex;
-  opacity: 1;
+  transition: opacity var(--lb-fade) var(--ease),
+    background var(--lb-fade) var(--ease),
+    backdrop-filter var(--lb-fade) var(--ease),
+    -webkit-backdrop-filter var(--lb-fade) var(--ease),
+    visibility 0s; /* show immediately on open */
 }
 .lb-card {
   background: var(--surface);
@@ -861,6 +877,14 @@ body {
   box-shadow: var(--shadow);
   display: grid;
   place-items: center;
+}
+
+/* Reduced motion: collapse the slow blur/darken (and the paired audio sweep,
+   which reads the matching DUCK_SECS) into a quick transition. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --lb-fade: 0.25s;
+  }
 }
 
 /* ---------------------------------------------------------------------- */

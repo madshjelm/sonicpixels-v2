@@ -6,7 +6,7 @@ import {
   MathUtils,
 } from 'three';
 import { loadContent } from './content.js';
-import { deviceTier } from './config.js';
+import { deviceTier, reducedMotion } from './config.js';
 import { PixelField } from './scene/PixelField.js';
 import { makeReactors } from './scene/reactors.js';
 import { AudioEngine } from './audio/AudioEngine.js';
@@ -61,6 +61,10 @@ async function main() {
   // --- Audio + UI -------------------------------------------------------
   const audio = new AudioEngine(content.tracks);
 
+  // How long the music sweep + lightbox blur take. Kept short for users who
+  // prefer reduced motion (this also drives --lb-fade via the CSS media query).
+  const DUCK_SECS = reducedMotion ? 0.25 : 1.4;
+
   const overlay = new Overlay(content, {
     onSelectTrack: (i) => audio.select(i),
     onTransport: (action) => {
@@ -69,6 +73,12 @@ async function main() {
       else if (action === 'prev') audio.prev();
     },
     onPulse: (nx, ny, strength) => field.pulseAt(nx, ny, strength),
+    // Opening a video ducks the music (sweep closed, then pause); closing the
+    // player restores it. Images have no audio, so only videos duck.
+    onMediaOpen: (v) => {
+      if (v.type === 'video') audio.duckForVideo(DUCK_SECS);
+    },
+    onMediaClose: () => audio.restoreFromVideo(DUCK_SECS),
   });
 
   const overlayRoot = document.createElement('div');
