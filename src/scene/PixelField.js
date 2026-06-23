@@ -124,7 +124,6 @@ export class PixelField {
       worldHalfH: this.worldHalfH,
       docked: this.docked,
       region,
-      exclude: (meta && meta.exclude) || null,
       homeCol: this.homeCol,
       homeRow: this.homeRow,
       binFrac: this.binFrac,
