@@ -120,48 +120,50 @@ async function main() {
     const stateEl = overlay.states[state];
     const headRect = stateEl?.querySelector('.state-head')?.getBoundingClientRect();
     const tunerH = tuner.el.getBoundingClientRect().height || 96;
+    const headBottom = headRect ? headRect.bottom : 120;
     const sideMargin = Math.max(PAD, vw * 0.02);
 
-    const headBottom = headRect ? headRect.bottom : 120;
     let left = sideMargin;
     let right = vw - sideMargin;
     let top, bottom;
 
     if (state === 'audio') {
-      top = headBottom + PAD * 1.5; // sit the matrix a touch below the header
+      // Generous air on every edge: below the header, off the panel/tuner/sides.
+      const air = PAD * 2;
+      left = Math.max(PAD * 2, vw * 0.03);
+      right = vw - left;
+      top = headBottom + air;
       const panel = stateEl?.querySelector('.audio-panel')?.getBoundingClientRect();
       if (docked === 'right') {
-        if (panel && panel.width) right = panel.left - PAD * 2;
-        bottom = vh - tunerH - PAD * 1.5;
+        if (panel && panel.width) right = panel.left - air * 1.4;
+        bottom = vh - tunerH - air;
       } else {
-        bottom = panel && panel.height ? panel.top - PAD : vh * 0.5;
+        bottom = (panel && panel.height ? panel.top : vh * 0.5) - air;
       }
-      // Guard against an inverted region on very short viewports.
       bottom = Math.max(bottom, top + 60);
       right = Math.max(right, left + 80);
-      return { region: rectToRegion(left, top, right, bottom, vw, vh), exclude: null, docked };
+      return { region: rectToRegion(left, top, right, bottom, vw, vh), docked };
     }
 
-    // Visual / Builds / Contact: fill above the tuner; carve out the header.
-    top = PAD;
-    bottom = Math.max(vh - tunerH - PAD * 1.5, top + 60);
-    const region = rectToRegion(left, top, right, bottom, vw, vh);
-    let exclude = null;
-    if (headRect && (state === 'visual' || state === 'builds')) {
-      exclude = rectToRegion(
-        Math.max(0, headRect.left - PAD),
-        Math.max(0, headRect.top - PAD),
-        headRect.right + PAD,
-        headRect.bottom + PAD,
-        vw,
-        vh
-      );
+    if (state === 'contact') {
+      // A roomy area for the calm halo (sits behind the centred card).
+      top = PAD;
+      bottom = Math.max(vh - tunerH - PAD * 1.5, top + 60);
+      return { region: rectToRegion(left, top, right, bottom, vw, vh), docked };
     }
-    return { region, exclude, docked };
+
+    // Visual / Builds: a clean ceiling just below the header text so tiles
+    // never sit over it, filling the full width down to above the tuner.
+    top = headBottom + PAD * 1.5;
+    bottom = Math.max(vh - tunerH - PAD * 1.5, top + 60);
+    return { region: rectToRegion(left, top, right, bottom, vw, vh), docked };
   }
   field.regionFor = regionFor;
 
   // --- Sizing -----------------------------------------------------------
+  // (adaptive-quality frame counters; declared here so resize() can reset them)
+  let frames = 0;
+  let acc = 0;
   function resize() {
     const w = window.innerWidth,
       h = window.innerHeight;
@@ -174,16 +176,20 @@ async function main() {
     const worldHalfW = worldHalfH * camera.aspect;
     const docked = w <= DOCK_BREAKPOINT ? 'bottom' : 'right';
     field.setBounds(worldHalfW, worldHalfH, docked);
+    // Ignore the frame-time spike a resize causes (avoid false degradation).
+    frames = 0;
+    acc = 0;
   }
   window.addEventListener('resize', resize);
   resize();
   // The DOM states stay hidden behind the landing; the audio panel only
   // appears once the user presses play (see the landing handler above).
 
-  // --- Adaptive quality (screen size + DPR + frame time) ---------------
-  let qaLevel = 0;
-  let frames = 0;
-  let acc = 0;
+  // --- Adaptive quality -------------------------------------------------
+  // Only the device-pixel-ratio is adjusted, never the instance count — the
+  // pixel field must always stay a complete grid. It recovers when the frame
+  // rate is healthy again, and the window is reset on resize so a resize
+  // spike can't permanently degrade quality.
   function adapt(dt) {
     frames++;
     acc += dt;
@@ -191,17 +197,13 @@ async function main() {
     const fps = frames / acc;
     frames = 0;
     acc = 0;
-    if (fps < 45 && qaLevel < 3) {
-      qaLevel++;
-      if (qaLevel === 1) {
-        dprCap = Math.max(1, dprCap * 0.8);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, dprCap));
-      } else {
-        const frac = qaLevel === 2 ? 0.82 : 0.66;
-        const c = Math.floor(field.n * frac);
-        field.mesh.count = c;
-        field.shadow.count = c;
-      }
+    const maxDpr = tier.maxDpr;
+    if (fps < 45 && dprCap > 1) {
+      dprCap = Math.max(1, dprCap - 0.25);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, dprCap));
+    } else if (fps > 57 && dprCap < maxDpr) {
+      dprCap = Math.min(maxDpr, dprCap + 0.25);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, dprCap));
     }
   }
 
