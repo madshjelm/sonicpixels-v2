@@ -62,7 +62,7 @@
       "description": "Placeholder visual. Replace with your own work via content.json."
     }
   ],
-  "builds": [
+  "web": [
     {
       "title": "Sonic Pixels",
       "description": "This site. A single audio-reactive Three.js scene where a field of solid-colour tiles listens to whatever's playing.",

@@ -33,12 +33,12 @@ export function paletteRamp(f, out = _rampTmp) {
   return out.copy(ACCENTS[i]).lerp(ACCENTS[i + 1], t - i);
 }
 
-export const STATES = ['audio', 'visual', 'builds', 'contact'];
+export const STATES = ['audio', 'visual', 'web', 'contact'];
 
 export const STATE_LABELS = {
   audio: 'Audio',
   visual: 'Visual',
-  builds: 'Builds',
+  web: 'Web',
   contact: 'Contact',
 };
 

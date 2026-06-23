@@ -28,7 +28,7 @@ export class Overlay {
     });
     this.renderAudio();
     this.renderVisual();
-    this.renderBuilds();
+    this.renderWeb();
     this.renderContact();
     this.buildLightbox();
   }
@@ -145,22 +145,22 @@ export class Overlay {
     });
   }
 
-  // --- Builds ------------------------------------------------------------
-  renderBuilds() {
-    const el = this.states.builds;
+  // --- Web ---------------------------------------------------------------
+  renderWeb() {
+    const el = this.states.web;
     el.innerHTML =
-      this.head('Builds', 'Things I have made. Hover sends a ripple through the field.') +
-      `<div class="state-body"><div class="card-grid builds-grid"></div></div>`;
-    const grid = el.querySelector('.builds-grid');
-    this.content.builds.forEach((b) => {
+      this.head('Web', 'Web projects and experiments. Hover sends a ripple through the field.') +
+      `<div class="state-body"><div class="card-grid web-grid"></div></div>`;
+    const grid = el.querySelector('.web-grid');
+    this.content.web.forEach((b) => {
       const card = document.createElement('div');
-      card.className = 'card build-card panel';
+      card.className = 'card web-card panel';
       const tags = (b.tags || []).map((t) => `<span class="tag">${t}</span>`).join('');
       card.innerHTML = `
         <h3>${b.title || 'Untitled'}</h3>
         <p>${b.description || ''}</p>
         ${tags ? `<div class="tag-row">${tags}</div>` : ''}
-        ${b.url ? `<a class="build-link" href="${b.url}" target="_blank" rel="noopener">Open ↗</a>` : ''}`;
+        ${b.url ? `<a class="web-link" href="${b.url}" target="_blank" rel="noopener">Open ↗</a>` : ''}`;
       const ripple = (e) => {
         const r = card.getBoundingClientRect();
         const nx = ((r.left + r.width / 2) / window.innerWidth) * 2 - 1;

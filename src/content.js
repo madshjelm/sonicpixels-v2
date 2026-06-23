@@ -1,7 +1,7 @@
 import { asset } from './config.js';
 
 // Loads /public/content.json. Everything the site shows comes from here —
-// adding a track, visual, or build is a JSON edit, no code change.
+// adding a track, visual, or web project is a JSON edit, no code change.
 export async function loadContent() {
   const url = asset('content.json');
   try {
@@ -19,7 +19,11 @@ function normalise(data) {
     site: data.site || { title: 'Sonic Pixels', tagline: '' },
     tracks: Array.isArray(data.tracks) ? data.tracks : [],
     visuals: Array.isArray(data.visuals) ? data.visuals : [],
-    builds: Array.isArray(data.builds) ? data.builds : [],
+    web: Array.isArray(data.web)
+      ? data.web
+      : Array.isArray(data.builds)
+        ? data.builds
+        : [],
     contact: data.contact || { email: '', links: [] },
   };
 }

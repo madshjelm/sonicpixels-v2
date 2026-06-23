@@ -42,8 +42,8 @@ function visualLayout(ctx, set) {
   }
 }
 
-// Builds — a calm, ordered grid filling the region (below the header ceiling).
-function buildsLayout(ctx, set) {
+// Web — a calm, ordered grid filling the region (below the header ceiling).
+function webLayout(ctx, set) {
   const { cols, rows, worldHalfW, worldHalfH, region } = ctx;
   const stepX = (2 * region.hw) / Math.max(1, cols - 1);
   const stepY = (2 * region.hh) / Math.max(1, rows - 1);
@@ -76,6 +76,6 @@ function contactLayout(ctx, set) {
 export const layouts = {
   audio: audioLayout,
   visual: visualLayout,
-  builds: buildsLayout,
+  web: webLayout,
   contact: contactLayout,
 };

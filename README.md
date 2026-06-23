@@ -2,7 +2,7 @@
 
 A one-page, audio-reactive WebGL portfolio. A modest field of solid-colour
 square "pixels" — a single `THREE.InstancedMesh` — rearranges between four
-states (Audio · Visual · Builds · Contact) and reacts in real time to whatever
+states (Audio · Visual · Web · Contact) and reacts in real time to whatever
 music is playing. Warm, soft, light mode. No glow, no nebula — chunky, friendly
 tiles in a calm daylight space.
 
@@ -34,7 +34,7 @@ npm run preview  # serve the production build locally
 ## Editing content — no code required
 
 Everything the site shows is read from **`public/content.json`** and the files
-in **`public/media/`**. To add a track, visual, or build, drop a file in
+in **`public/media/`**. To add a track, visual, or web project, drop a file in
 `public/media/` and add a JSON entry. That's it — no code changes.
 
 ### `content.json` schema (commented example)
@@ -74,8 +74,8 @@ in **`public/media/`**. To add a track, visual, or build, drop a file in
     }
   ],
 
-  // BUILDS — project cards with tags and a link out.
-  "builds": [
+  // WEB — project cards with tags and a link out.
+  "web": [
     {
       "title": "Sonic Pixels",
       "description": "…",
@@ -191,14 +191,14 @@ custom domain set after each deploy. You just need the DNS records.
     **peak-hold** cap. Settles to a calm resting wave when quiet.
   - **Visual** tints the framing tiles by spectral brightness and gives them a
     gentle spectrum shimmer while you browse.
-  - **Builds** shimmers quietly; hovering a card sends a small, contained nudge
+  - **Web** shimmers quietly; hovering a card sends a small, contained nudge
     through the nearby tiles (deliberately subtle, not a sweeping wave).
   - **Contact** only breathes slowly with the loudness — the calmest state.
 - **Soft depth, no glow.** Tiles are flat solid colours with crisp rounded
   edges; a second instanced mesh renders a soft, blurred drop shadow behind
   them. The background is a gentle lavender radial gradient.
 - **Content layer.** The reactive field is the backdrop; the cards, track panel,
-  gallery and lightbox are plain DOM (`src/ui/Overlay.js`) so all copy stays in
+  gallery, web cards and lightbox are plain DOM (`src/ui/Overlay.js`) so all copy stays in
   `content.json`.
 
 ## Performance & accessibility
