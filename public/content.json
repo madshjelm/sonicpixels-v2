@@ -29,13 +29,13 @@
       "type": "video",
       "file": "media/AI%20Videoproduktion.mp4",
       "title": "AI videoproduktion",
-      "description": "Placeholder visual. Drop an image or video into /public/media and describe it here."
+      "description": "AI generated video with original soundtrack and voiceover."
     },
     {
-      "type": "image",
-      "file": "media/visual-2.svg",
-      "title": "Tile Study 02",
-      "description": "Placeholder visual. Supports images and video — set \"type\": \"video\" for clips."
+      "type": "video",
+      "file": "media/Zen-Garden.mp4",
+      "title": "Zen Garden",
+      "description": "AI generated video with original soundtrack."
     },
     {
       "type": "image",
