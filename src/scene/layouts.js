@@ -4,23 +4,24 @@ import { ACCENTS, PALETTE, paletteRamp } from '../config.js';
 const SURFACE = new Color(PALETTE.surface);
 const accent = (i) => ACCENTS[((i % ACCENTS.length) + ACCENTS.length) % ACCENTS.length];
 
-/**
- * Audio — a fixed LED matrix used as a spectrum analyzer. Columns map to
- * frequency (low→high, left→right) and so does the colour (coral→teal); the
- * AudioReactor fills each column to the band's amplitude. Docked to the left
- * of the track panel on wide screens, or above it on narrow ones.
- */
-function audioLayout(ctx, set) {
-  const { cols, rows, worldHalfW, worldHalfH, docked } = ctx;
-  const region =
-    docked === 'right'
-      ? { cx: -0.3, cy: 0.08, hw: 0.58, hh: 0.6 }
-      : { cx: 0, cy: 0.36, hw: 0.84, hh: 0.42 };
+// Is a normalized point inside the (optional) carved-out header rectangle?
+function inExclude(nx, ny, ex) {
+  return ex && Math.abs(nx - ex.cx) <= ex.hw && Math.abs(ny - ex.cy) <= ex.hh;
+}
 
+/**
+ * Every layout fills `ctx.region` — a normalized rectangle ({cx,cy,hw,hh} in
+ * [-1,1]) computed by main from the measured header / tuner / player, so the
+ * tiles stay clear of the UI and fill deliberately at any screen size.
+ * `ctx.exclude` optionally carves out the header box.
+ */
+
+// Audio — spectrum analyzer grid that fills the region exactly.
+function audioLayout(ctx, set) {
+  const { cols, rows, worldHalfW, worldHalfH, region } = ctx;
   const stepX = (2 * region.hw * worldHalfW) / Math.max(1, cols - 1);
   const stepY = (2 * region.hh * worldHalfH) / Math.max(1, rows - 1);
-  const size = Math.min(stepX, stepY) * 0.72;
-
+  const size = Math.min(stepX, stepY) * 0.6;
   for (let i = 0; i < ctx.n; i++) {
     const u = cols > 1 ? ctx.homeCol[i] / (cols - 1) : 0.5;
     const v = rows > 1 ? ctx.homeRow[i] / (rows - 1) : 0.5;
@@ -31,76 +32,59 @@ function audioLayout(ctx, set) {
   }
 }
 
-/**
- * Visual — a loose, full-field grid that frames the thumbnail cards and
- * gently pushes away from the centre so the content reads clearly.
- */
+// Visual — a loose grid filling the region, with the header box carved out.
 function visualLayout(ctx, set) {
-  const { cols, rows, worldHalfW, worldHalfH } = ctx;
-  const stepX = (2 * 0.92 * worldHalfW) / Math.max(1, cols - 1);
-  const stepY = (2 * 0.86 * worldHalfH) / Math.max(1, rows - 1);
-  const size = Math.min(stepX, stepY) * 0.5;
-
+  const { cols, rows, worldHalfW, worldHalfH, region, exclude } = ctx;
+  const stepX = (2 * region.hw) / Math.max(1, cols - 1);
+  const stepY = (2 * region.hh) / Math.max(1, rows - 1);
+  const size = Math.min(stepX * worldHalfW, stepY * worldHalfH) * 0.52;
   for (let i = 0; i < ctx.n; i++) {
     const u = cols > 1 ? ctx.homeCol[i] / (cols - 1) : 0.5;
     const v = rows > 1 ? ctx.homeRow[i] / (rows - 1) : 0.5;
-    let nx = (u - 0.5) * 2 * 0.92 + (ctx.rand[i] - 0.5) * 0.05;
-    let ny = (v - 0.5) * 2 * 0.86 + (ctx.rand2[i] - 0.5) * 0.05;
-    // Nudge inner tiles outward to clear the central content.
-    const r = Math.hypot(nx, ny);
-    const push = 1 + 0.18 * (1 - smoothstep(0, 0.9, r));
+    const nx = region.cx + (u - 0.5) * 2 * region.hw + (ctx.rand[i] - 0.5) * 0.035;
+    const ny = region.cy + (v - 0.5) * 2 * region.hh + (ctx.rand2[i] - 0.5) * 0.035;
+    const hidden = inExclude(nx, ny, exclude);
     set(
       i,
-      nx * push * worldHalfW,
-      ny * push * worldHalfH,
+      nx * worldHalfW,
+      ny * worldHalfH,
       (ctx.rand[i] - 0.5) * 0.6,
-      size,
+      hidden ? 0 : size,
       accent(ctx.homeCol[i] + ctx.homeRow[i])
     );
   }
 }
 
-/**
- * Builds — a calmer, ordered grid with a cooler, more muted palette.
- */
+// Builds — a calm, ordered grid filling the region, header carved out.
 function buildsLayout(ctx, set) {
-  const { cols, rows, worldHalfW, worldHalfH } = ctx;
-  const stepX = (2 * 0.82 * worldHalfW) / Math.max(1, cols - 1);
-  const stepY = (2 * 0.78 * worldHalfH) / Math.max(1, rows - 1);
-  const size = Math.min(stepX, stepY) * 0.44;
-
+  const { cols, rows, worldHalfW, worldHalfH, region, exclude } = ctx;
+  const stepX = (2 * region.hw) / Math.max(1, cols - 1);
+  const stepY = (2 * region.hh) / Math.max(1, rows - 1);
+  const size = Math.min(stepX * worldHalfW, stepY * worldHalfH) * 0.46;
   for (let i = 0; i < ctx.n; i++) {
     const u = cols > 1 ? ctx.homeCol[i] / (cols - 1) : 0.5;
     const v = rows > 1 ? ctx.homeRow[i] / (rows - 1) : 0.5;
-    const x = (u - 0.5) * 2 * 0.82 * worldHalfW;
-    const y = (v - 0.5) * 2 * 0.78 * worldHalfH;
-    // Cooler, muted tiles for a quieter backdrop.
+    const nx = region.cx + (u - 0.5) * 2 * region.hw;
+    const ny = region.cy + (v - 0.5) * 2 * region.hh;
+    const hidden = inExclude(nx, ny, exclude);
     const base = (ctx.homeCol[i] + ctx.homeRow[i]) % 2 === 0 ? ACCENTS[2] : ACCENTS[3];
-    set(i, x, y, 0, size, base.clone().lerp(SURFACE, 0.28));
+    set(i, nx * worldHalfW, ny * worldHalfH, 0, hidden ? 0 : size, base.clone().lerp(SURFACE, 0.28));
   }
 }
 
-/**
- * Contact — the calmest state. A sparse halo of small tiles around the card,
- * spread evenly with a golden-angle scatter.
- */
+// Contact — a sparse halo, centred in the region with a golden-angle scatter.
 function contactLayout(ctx, set) {
-  const { worldHalfW, worldHalfH, n } = ctx;
-  const unit = Math.min(worldHalfW, worldHalfH) * 0.05;
+  const { worldHalfW, worldHalfH, n, region } = ctx;
+  const unit = Math.min(region.hw * worldHalfW, region.hh * worldHalfH) * 0.09;
   for (let i = 0; i < n; i++) {
     const a = i * 2.399963; // golden angle
-    const rad = 0.22 + 0.8 * Math.sqrt(i / n);
-    const x = Math.cos(a) * rad * 0.95 * worldHalfW;
-    const y = Math.sin(a) * rad * 0.78 * worldHalfH + 0.04 * worldHalfH;
+    const rad = 0.25 + 0.75 * Math.sqrt(i / n);
+    const nx = region.cx + Math.cos(a) * rad * region.hw;
+    const ny = region.cy + Math.sin(a) * rad * region.hh;
     const size = unit * (0.6 + ctx.rand[i] * 0.7);
     const col = (i % 3 === 0 ? ACCENTS[2] : ACCENTS[3]).clone().lerp(SURFACE, 0.18);
-    set(i, x, y, (ctx.rand2[i] - 0.5) * 0.4, size, col);
+    set(i, nx * worldHalfW, ny * worldHalfH, (ctx.rand2[i] - 0.5) * 0.4, size, col);
   }
-}
-
-function smoothstep(a, b, x) {
-  const t = Math.max(0, Math.min(1, (x - a) / (b - a)));
-  return t * t * (3 - 2 * t);
 }
 
 export const layouts = {

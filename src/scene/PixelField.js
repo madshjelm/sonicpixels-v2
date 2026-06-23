@@ -112,6 +112,10 @@ export class PixelField {
 
   applyLayout(state, immediate = false) {
     this.state = state;
+    // main supplies the tile region (measured from the live UI). Fall back to
+    // a sensible full-field rectangle if no provider is wired yet.
+    const meta = this.regionFor ? this.regionFor(state) : null;
+    const region = (meta && meta.region) || { cx: 0, cy: 0, hw: 0.86, hh: 0.72 };
     const ctx = {
       n: this.n,
       cols: this.cols,
@@ -119,6 +123,8 @@ export class PixelField {
       worldHalfW: this.worldHalfW,
       worldHalfH: this.worldHalfH,
       docked: this.docked,
+      region,
+      exclude: (meta && meta.exclude) || null,
       homeCol: this.homeCol,
       homeRow: this.homeRow,
       binFrac: this.binFrac,

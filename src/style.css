@@ -894,10 +894,12 @@ body {
     align-items: flex-end;
     justify-content: stretch;
   }
-  /* A scrollable bottom sheet that always shows the controls + full list. */
+  /* A scrollable bottom sheet that always shows the controls + full list,
+     held clear of the tuner by a small gap. */
   .audio-panel {
     width: 100%;
-    max-height: 70%;
+    max-height: 60%;
+    margin-bottom: clamp(10px, 1.6vh, 16px);
   }
   .state {
     padding: clamp(16px, 5vw, 28px);

@@ -58,16 +58,18 @@ export class AudioReactor {
       const h = this.bars[c];
 
       // Lit up to the bar height, with a soft edge one row-step wide.
+      // Modest scale growth (tiles must not overlap neighbours); the lit
+      // tiles read mostly through brightness, not size.
       const lit = clamp((h - rowFrac) / rs);
-      field.dScale[i] = 0.06 + 0.85 * lit * (0.55 + 0.45 * h);
-      field.dBright[i] = 0.15 + 0.6 * lit;
+      field.dScale[i] = 0.04 + 0.4 * lit * (0.6 + 0.4 * h);
+      field.dBright[i] = 0.18 + 0.62 * lit;
 
       // Peak-hold cap: the tile nearest the held peak gets a bright lift.
       const pd = Math.abs(rowFrac - this.peaks[c]);
       if (this.peaks[c] > 0.06 && pd < rs * 0.75) {
         const cap = 1 - pd / (rs * 0.75);
-        field.dScale[i] += 0.28 * cap;
-        if (field.dBright[i] < 0.5 + 0.45 * cap) field.dBright[i] = 0.5 + 0.45 * cap;
+        field.dScale[i] += 0.1 * cap;
+        if (field.dBright[i] < 0.55 + 0.4 * cap) field.dBright[i] = 0.55 + 0.4 * cap;
       }
     }
   }
