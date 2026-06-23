@@ -27,6 +27,12 @@
   "visuals": [
     {
       "type": "video",
+      "file": "media/Copilot-workshop.mp4",
+      "title": "Copilot workshop",
+      "description": "Produceret i After Effects."
+    },
+    {
+      "type": "video",
       "file": "media/AI%20Videoproduktion.mp4",
       "title": "AI videoproduktion",
       "description": "AI generated video with original soundtrack and voiceover."
