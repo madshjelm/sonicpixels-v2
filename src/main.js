@@ -95,8 +95,71 @@ async function main() {
     overlay.setState('audio');
     tuner.show();
     landing.hide();
+    // Re-fit the matrix now the player panel + tuner are actually on screen.
+    requestAnimationFrame(() => field.applyLayout('audio'));
   });
   app.appendChild(landing.el);
+
+  // --- Tile regions (measured from the live UI) ------------------------
+  // Each state's tiles fill a normalized rectangle ({cx,cy,hw,hh} in [-1,1])
+  // computed from the real header / tuner / player boxes, so the field stays
+  // clear of the UI and fills deliberately at any screen size.
+  const PAD = 16;
+  const rectToRegion = (x0, y0, x1, y1, vw, vh) => {
+    const nxL = (x0 / vw) * 2 - 1;
+    const nxR = (x1 / vw) * 2 - 1;
+    const nyT = 1 - (y0 / vh) * 2;
+    const nyB = 1 - (y1 / vh) * 2;
+    return { cx: (nxL + nxR) / 2, cy: (nyT + nyB) / 2, hw: (nxR - nxL) / 2, hh: (nyT - nyB) / 2 };
+  };
+
+  function regionFor(state) {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const docked = vw <= DOCK_BREAKPOINT ? 'bottom' : 'right';
+    const stateEl = overlay.states[state];
+    const headRect = stateEl?.querySelector('.state-head')?.getBoundingClientRect();
+    const tunerH = tuner.el.getBoundingClientRect().height || 96;
+    const sideMargin = Math.max(PAD, vw * 0.02);
+
+    const headBottom = headRect ? headRect.bottom : 120;
+    let left = sideMargin;
+    let right = vw - sideMargin;
+    let top, bottom;
+
+    if (state === 'audio') {
+      top = headBottom + PAD * 1.5; // sit the matrix a touch below the header
+      const panel = stateEl?.querySelector('.audio-panel')?.getBoundingClientRect();
+      if (docked === 'right') {
+        if (panel && panel.width) right = panel.left - PAD * 2;
+        bottom = vh - tunerH - PAD * 1.5;
+      } else {
+        bottom = panel && panel.height ? panel.top - PAD : vh * 0.5;
+      }
+      // Guard against an inverted region on very short viewports.
+      bottom = Math.max(bottom, top + 60);
+      right = Math.max(right, left + 80);
+      return { region: rectToRegion(left, top, right, bottom, vw, vh), exclude: null, docked };
+    }
+
+    // Visual / Builds / Contact: fill above the tuner; carve out the header.
+    top = PAD;
+    bottom = Math.max(vh - tunerH - PAD * 1.5, top + 60);
+    const region = rectToRegion(left, top, right, bottom, vw, vh);
+    let exclude = null;
+    if (headRect && (state === 'visual' || state === 'builds')) {
+      exclude = rectToRegion(
+        Math.max(0, headRect.left - PAD),
+        Math.max(0, headRect.top - PAD),
+        headRect.right + PAD,
+        headRect.bottom + PAD,
+        vw,
+        vh
+      );
+    }
+    return { region, exclude, docked };
+  }
+  field.regionFor = regionFor;
 
   // --- Sizing -----------------------------------------------------------
   function resize() {
