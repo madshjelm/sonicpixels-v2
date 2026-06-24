@@ -194,18 +194,29 @@ async function main() {
       return { region: rectToRegion(left, top, right, bottom, vw, vh), docked };
     }
 
-    // Visual / Web / Contact. Keep clear of the tuner (more so on desktop) and,
-    // on mobile, use generous top + bottom margins so the field is a calm,
-    // centred band rather than stretched to the full height.
-    const bottomGap = docked === 'bottom' ? PAD * 5 : PAD * 3;
-    if (state === 'contact') {
-      // The calm halo behind the centred card.
-      top = docked === 'bottom' ? PAD * 4 : PAD;
+    // Visual / Web / Contact.
+    if (docked === 'bottom') {
+      // Mobile: a calmer, vertically-centred band held well clear of the tuner.
+      // The full grid is wider than a phone, so instead of zooming in to fill
+      // the height (which shoves most tiles off-screen) settle for a smaller
+      // band with deliberate air below it — a calm middle ground, not a busy
+      // edge-to-edge fill. Some spill is fine here; staying calm matters more.
+      const sideM = Math.max(PAD * 2, vw * 0.05); // slight inset → clearly centred
+      left = sideM;
+      right = vw - sideM;
+      const ceil = state === 'contact' ? PAD * 3 : headBottom + PAD;
+      const floor = vh - tunerH - Math.max(PAD * 7, vh * 0.13); // generous air above tuner
+      const avail = Math.max(120, floor - ceil);
+      const bandH = avail * 0.74; // a calm band, not the whole slot
+      top = ceil + (avail - bandH) * 0.42; // nudge a touch above centre
+      // Hold clear of the tuner, but never let the band collapse (top + 60).
+      bottom = Math.max(Math.min(top + bandH, vh - tunerH - PAD * 2), top + 60);
     } else {
-      // Visual / Web: a clean ceiling just below the header text.
-      top = headBottom + (docked === 'bottom' ? PAD * 2 : PAD);
+      // Desktop: fill the full width between the header ceiling and the tuner.
+      const bottomGap = PAD * 3;
+      top = state === 'contact' ? PAD : headBottom + PAD;
+      bottom = Math.max(vh - tunerH - bottomGap, top + 60);
     }
-    bottom = Math.max(vh - tunerH - bottomGap, top + 60);
     return { region: rectToRegion(left, top, right, bottom, vw, vh), docked };
   }
   field.regionFor = regionFor;
@@ -235,26 +246,36 @@ async function main() {
   if (window.visualViewport) window.visualViewport.addEventListener('resize', resize);
   resize();
 
-  // Keep the Audio matrix fitted above the player panel whenever that panel
-  // changes size (URL bar, fonts, content) or finishes animating in. This is
-  // what keeps the tiles from ending up hidden behind the player on mobile.
+  // Re-fit the *current* state smoothly whenever its available area changes —
+  // not only on a window 'resize'. This generalises the width-tracking Audio
+  // already gets from its .tile-area spacer to every state, so Visual / Web /
+  // Contact re-fit and stay in view as the window is dragged or the layout
+  // settles (fonts, the URL bar, the state animating in).
   let refitQueued = false;
-  const refitAudio = () => {
-    if (field.state !== 'audio' || refitQueued) return;
+  const refitCurrent = () => {
+    if (refitQueued) return;
     refitQueued = true;
     requestAnimationFrame(() => {
       refitQueued = false;
-      if (field.state === 'audio') field.applyLayout('audio');
+      field.applyLayout(field.state); // ease toward the freshly measured region
     });
   };
-  // Observe the tile-area itself — it resizes whenever the player does, so the
-  // matrix re-fits to the exact remaining gap on any layout change.
-  const tileAreaEl = overlay.states.audio.querySelector('.tile-area');
-  if (tileAreaEl && 'ResizeObserver' in window) {
-    new ResizeObserver(refitAudio).observe(tileAreaEl);
+  if ('ResizeObserver' in window) {
+    // #state-root is the flex area above the tuner: it resizes with the window
+    // width and whenever the tuner / visual viewport changes its height.
+    new ResizeObserver(refitCurrent).observe(overlay.root);
+    // Audio also re-fits to its .tile-area, which resizes when the player panel
+    // does without changing #state-root (track switch, fonts, content) — this
+    // is what keeps the matrix clear of the player on mobile.
+    const tileAreaEl = overlay.states.audio.querySelector('.tile-area');
+    if (tileAreaEl) new ResizeObserver(refitCurrent).observe(tileAreaEl);
   }
-  overlay.states.audio.addEventListener('transitionend', (e) => {
-    if (e.propertyName === 'transform') refitAudio();
+  // A state fades in with a transform transition; re-fit once it has settled so
+  // the field matches the final measured layout (covers every state).
+  overlay.root.addEventListener('transitionend', (e) => {
+    if (e.propertyName === 'transform' && e.target.classList.contains('state')) {
+      refitCurrent();
+    }
   });
 
   // The DOM states stay hidden behind the landing; the audio panel only
