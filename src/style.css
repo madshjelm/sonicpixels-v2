@@ -66,6 +66,13 @@ body {
 #scene-canvas {
   position: fixed;
   inset: 0;
+  /* A <canvas> is a *replaced* element: with inset:0 but no explicit width it
+     lays out at its intrinsic (drawing-buffer) width, which renderer.setSize
+     sets to cssWidth * devicePixelRatio. On HiDPI screens (dpr>1) that makes
+     the canvas wider than the viewport, anchored at left:0 — so its right half
+     (and the right half of every centred field) is clipped off-screen. Pin the
+     CSS size to the viewport so the buffer only sets resolution, not layout. */
+  width: 100vw;
   height: 100vh;
   height: 100dvh;
   z-index: 1;
