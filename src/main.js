@@ -51,7 +51,18 @@ async function main() {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, dprCap));
 
   const scene = new Scene();
-  const camera = new PerspectiveCamera(FOV, window.innerWidth / window.innerHeight, 0.1, 100);
+  // One viewport basis for everything: the canvas's real displayed box (which,
+  // with the 100dvh layers in style.css, equals the visible area). Using this
+  // instead of window.innerWidth/Height keeps the WebGL buffer, the camera and
+  // the measured tile regions in the same coordinate space. Without it, mobile
+  // browsers stretch the field — buffer sized to the visual viewport, box to the
+  // taller layout viewport — and the tiles slide down behind the player.
+  const viewport = () => ({
+    w: canvas.clientWidth || window.innerWidth,
+    h: canvas.clientHeight || window.innerHeight,
+  });
+  const cam0 = viewport();
+  const camera = new PerspectiveCamera(FOV, cam0.w / cam0.h, 0.1, 100);
   camera.position.set(0, 0, CAM_D);
 
   const field = new PixelField(scene, tier);
@@ -138,8 +149,7 @@ async function main() {
   };
 
   function regionFor(state) {
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
+    const { w: vw, h: vh } = viewport();
     const docked = vw <= DOCK_BREAKPOINT ? 'bottom' : 'right';
     const stateEl = overlay.states[state];
     const headRect = stateEl?.querySelector('.state-head')?.getBoundingClientRect();
@@ -189,8 +199,7 @@ async function main() {
   let frames = 0;
   let acc = 0;
   function resize() {
-    const w = window.innerWidth,
-      h = window.innerHeight;
+    const { w, h } = viewport();
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, dprCap));
