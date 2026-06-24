@@ -6,9 +6,9 @@
   },
   "tracks": [
     {
-      "title": "Pulse Garden",
-      "description": "A warm, mid-tempo loop — gentle kicks and a pentatonic melody that makes the lower rows bloom. Placeholder track; replace in content.json.",
-      "file": "media/track-1-pulse-garden.wav",
+      "title": "Atmospheric Piano",
+      "description": "Piano piece inspired by cyclical nordic jazz",
+      "file": "media/atmospheric-piano.mp3",
       "artwork": "media/art-1.svg"
     },
     {
