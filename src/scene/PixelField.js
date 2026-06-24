@@ -201,9 +201,10 @@ export class PixelField {
     }
 
     // Ease layout (position / size / colour) toward the current targets.
-    const posRate = reducedMotion ? 30 : 2.4;
-    const sizeRate = reducedMotion ? 30 : 3.2;
-    const colRate = reducedMotion ? 30 : 3.0;
+    // Higher rates → the ~2s state transition now settles in about a second.
+    const posRate = reducedMotion ? 30 : 4.8;
+    const sizeRate = reducedMotion ? 30 : 6;
+    const colRate = reducedMotion ? 30 : 6;
     const cur = this.curPos,
       tgt = this.tgtPos,
       cs = this.curSize,

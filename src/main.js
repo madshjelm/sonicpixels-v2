@@ -195,8 +195,13 @@ async function main() {
     }
 
     // Visual / Web / Contact. Keep clear of the tuner (more so on desktop) and,
-    // on mobile, use generous top + bottom margins so the field is a calm,
-    // centred band rather than stretched to the full height.
+    // on mobile, use generous margins so the field is a calm, centred band
+    // rather than stretched to the full height/width (which felt zoomed in).
+    if (docked === 'bottom') {
+      const sm = Math.max(PAD * 2.5, vw * 0.06);
+      left = sm;
+      right = vw - sm;
+    }
     const bottomGap = docked === 'bottom' ? PAD * 5 : PAD * 3;
     if (state === 'contact') {
       // The calm halo behind the centred card.
@@ -229,15 +234,28 @@ async function main() {
     frames = 0;
     acc = 0;
   }
-  window.addEventListener('resize', resize);
-  // Mobile browsers resize the visual viewport when the URL bar shows/hides,
-  // which changes the player panel's height. Track it so the matrix re-fits.
-  if (window.visualViewport) window.visualViewport.addEventListener('resize', resize);
+  // All viewport changes route through one debounced resize. A ResizeObserver
+  // on the canvas is the reliable trigger (window 'resize' can be throttled,
+  // and on mobile the dvh/URL-bar viewport settles *after* load) — it re-fits
+  // EVERY state, not just Audio, which is what was missing for Visual/Web/
+  // Contact.
+  let resizeQueued = false;
+  const scheduleResize = () => {
+    if (resizeQueued) return;
+    resizeQueued = true;
+    requestAnimationFrame(() => {
+      resizeQueued = false;
+      resize();
+    });
+  };
+  window.addEventListener('resize', scheduleResize);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', scheduleResize);
+  if ('ResizeObserver' in window) new ResizeObserver(scheduleResize).observe(canvas);
   resize();
 
-  // Keep the Audio matrix fitted above the player panel whenever that panel
-  // changes size (URL bar, fonts, content) or finishes animating in. This is
-  // what keeps the tiles from ending up hidden behind the player on mobile.
+  // Audio also re-fits when the player panel itself changes size (track switch,
+  // fonts, content) or finishes animating in — the canvas size doesn't change
+  // for those, so keep observing the tile-area.
   let refitQueued = false;
   const refitAudio = () => {
     if (field.state !== 'audio' || refitQueued) return;
