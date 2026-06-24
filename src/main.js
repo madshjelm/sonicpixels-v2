@@ -65,6 +65,11 @@ async function main() {
   // prefer reduced motion (this also drives --lb-fade via the CSS media query).
   const DUCK_SECS = reducedMotion ? 0.25 : 1.4;
 
+  // While the lightbox covers the screen we freeze the field render (it's
+  // hidden) to free the GPU for video decode and keep the backdrop static.
+  let lightboxOpen = false;
+  let resumeTimer;
+
   const overlay = new Overlay(content, {
     onSelectTrack: (i) => audio.select(i),
     onTransport: (action) => {
@@ -76,9 +81,18 @@ async function main() {
     // Opening a video ducks the music (sweep closed, then pause); closing the
     // player restores it. Images have no audio, so only videos duck.
     onMediaOpen: (v) => {
+      lightboxOpen = true; // freeze the field; the player covers it
+      clearTimeout(resumeTimer);
       if (v.type === 'video') audio.duckForVideo(DUCK_SECS);
     },
-    onMediaClose: () => audio.restoreFromVideo(DUCK_SECS),
+    onMediaClose: () => {
+      audio.restoreFromVideo(DUCK_SECS);
+      // Stay frozen until the blur/darken has fully receded, then resume.
+      clearTimeout(resumeTimer);
+      resumeTimer = setTimeout(() => {
+        lightboxOpen = false;
+      }, DUCK_SECS * 1000 + 80);
+    },
   });
 
   const overlayRoot = document.createElement('div');
@@ -247,9 +261,12 @@ async function main() {
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     audio.update(dt);
-    field.update(dt, audio.features, audio.playing && started);
-    renderer.render(scene, camera);
-    adapt(dt);
+    // Skip the GPU-heavy field render while the lightbox covers the screen.
+    if (!lightboxOpen) {
+      field.update(dt, audio.features, audio.playing && started);
+      renderer.render(scene, camera);
+      adapt(dt);
+    }
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
