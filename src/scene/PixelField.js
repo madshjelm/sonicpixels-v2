@@ -201,7 +201,8 @@ export class PixelField {
     }
 
     // Ease layout (position / size / colour) toward the current targets.
-    // Higher rates → the ~2s state transition now settles in about a second.
+    // Higher rates → the state transition settles in about a second (and the
+    // re-fit on a window drag tracks the new region with little lag).
     const posRate = reducedMotion ? 30 : 4.8;
     const sizeRate = reducedMotion ? 30 : 6;
     const colRate = reducedMotion ? 30 : 6;
