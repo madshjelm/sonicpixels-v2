@@ -168,8 +168,13 @@ export class Overlay {
         ${b.url ? `<a class="web-link" href="${b.url}" target="_blank" rel="noopener">Open ↗</a>` : ''}`;
       const ripple = (e) => {
         const r = card.getBoundingClientRect();
-        const nx = ((r.left + r.width / 2) / window.innerWidth) * 2 - 1;
-        const ny = -(((r.top + r.height / 2) / window.innerHeight) * 2 - 1);
+        // Normalize against the canvas box (same basis the field is rendered
+        // in), not window.inner*, so the ripple origin lines up on mobile too.
+        const cv = document.getElementById('scene-canvas');
+        const vw = (cv && cv.clientWidth) || window.innerWidth;
+        const vh = (cv && cv.clientHeight) || window.innerHeight;
+        const nx = ((r.left + r.width / 2) / vw) * 2 - 1;
+        const ny = -(((r.top + r.height / 2) / vh) * 2 - 1);
         this.handlers.onPulse(nx, ny, 0.5);
       };
       card.addEventListener('mouseenter', ripple);
