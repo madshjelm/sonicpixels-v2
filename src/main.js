@@ -155,7 +155,9 @@ async function main() {
     const headRect = stateEl?.querySelector('.state-head')?.getBoundingClientRect();
     const tunerH = tuner.el.getBoundingClientRect().height || 96;
     const headBottom = headRect ? headRect.bottom : 120;
-    const sideMargin = Math.max(PAD, vw * 0.02);
+    // A little extra side margin keeps edge tiles clear of the screen edge even
+    // with residual parallax from the tiny per-tile z jitter.
+    const sideMargin = Math.max(PAD * 1.5, vw * 0.03);
 
     let left = sideMargin;
     let right = vw - sideMargin;
@@ -167,9 +169,11 @@ async function main() {
       // that directly — always in sync with the player, no timing/subtraction.
       const area = stateEl?.querySelector('.tile-area')?.getBoundingClientRect();
       if (area && area.width > 4 && area.height > 4) {
-        const i = PAD; // a little air inside the area
+        // A little air inside the area; a touch more at the bottom so the
+        // matrix sits clear of the tuner/player.
+        const ix = PAD;
         return {
-          region: rectToRegion(area.left + i, area.top + i, area.right - i, area.bottom - i, vw, vh),
+          region: rectToRegion(area.left + ix, area.top + PAD, area.right - ix, area.bottom - PAD * 2.5, vw, vh),
           docked,
         };
       }
@@ -190,17 +194,18 @@ async function main() {
       return { region: rectToRegion(left, top, right, bottom, vw, vh), docked };
     }
 
+    // Visual / Web / Contact. Keep clear of the tuner (more so on desktop) and,
+    // on mobile, use generous top + bottom margins so the field is a calm,
+    // centred band rather than stretched to the full height.
+    const bottomGap = docked === 'bottom' ? PAD * 5 : PAD * 3;
     if (state === 'contact') {
-      // A roomy area for the calm halo (sits behind the centred card).
-      top = PAD;
-      bottom = Math.max(vh - tunerH - PAD * 1.5, top + 60);
-      return { region: rectToRegion(left, top, right, bottom, vw, vh), docked };
+      // The calm halo behind the centred card.
+      top = docked === 'bottom' ? PAD * 4 : PAD;
+    } else {
+      // Visual / Web: a clean ceiling just below the header text.
+      top = headBottom + (docked === 'bottom' ? PAD * 2 : PAD);
     }
-
-    // Visual / Web: a clean ceiling just below the header text so tiles
-    // never sit over it, filling the full width down to above the tuner.
-    top = headBottom + PAD;
-    bottom = Math.max(vh - tunerH - PAD * 1.5, top + 60);
+    bottom = Math.max(vh - tunerH - bottomGap, top + 60);
     return { region: rectToRegion(left, top, right, bottom, vw, vh), docked };
   }
   field.regionFor = regionFor;

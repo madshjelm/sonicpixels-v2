@@ -116,6 +116,9 @@ export class PixelField {
     // a sensible full-field rectangle if no provider is wired yet.
     const meta = this.regionFor ? this.regionFor(state) : null;
     const region = (meta && meta.region) || { cx: 0, cy: 0, hw: 0.86, hh: 0.72 };
+    // Scale the per-tile positional randomness down on smaller grids so phones
+    // get much calmer (straighter) rows than desktop.
+    const jitter = this.cols <= 16 ? 0.35 : this.cols <= 22 ? 0.7 : 1;
     const ctx = {
       n: this.n,
       cols: this.cols,
@@ -124,6 +127,7 @@ export class PixelField {
       worldHalfH: this.worldHalfH,
       docked: this.docked,
       region,
+      jitter,
       homeCol: this.homeCol,
       homeRow: this.homeRow,
       binFrac: this.binFrac,

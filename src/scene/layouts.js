@@ -21,7 +21,7 @@ function audioLayout(ctx, set) {
     const v = rows > 1 ? ctx.homeRow[i] / (rows - 1) : 0.5;
     const x = (region.cx + (u - 0.5) * 2 * region.hw) * worldHalfW;
     const y = (region.cy + (v - 0.5) * 2 * region.hh) * worldHalfH;
-    const z = (ctx.rand[i] - 0.5) * 0.2;
+    const z = (ctx.rand[i] - 0.5) * 0.12 * ctx.jitter;
     set(i, x, y, z, size, paletteRamp(u));
   }
 }
@@ -36,9 +36,10 @@ function visualLayout(ctx, set) {
   for (let i = 0; i < ctx.n; i++) {
     const u = cols > 1 ? ctx.homeCol[i] / (cols - 1) : 0.5;
     const v = rows > 1 ? ctx.homeRow[i] / (rows - 1) : 0.5;
-    const nx = region.cx + (u - 0.5) * 2 * region.hw + (ctx.rand[i] - 0.5) * 0.035;
-    const ny = region.cy + (v - 0.5) * 2 * region.hh + (ctx.rand2[i] - 0.5) * 0.035;
-    set(i, nx * worldHalfW, ny * worldHalfH, (ctx.rand[i] - 0.5) * 0.6, size, accent(ctx.homeCol[i] + ctx.homeRow[i]));
+    const j = ctx.jitter;
+    const nx = region.cx + (u - 0.5) * 2 * region.hw + (ctx.rand[i] - 0.5) * 0.018 * j;
+    const ny = region.cy + (v - 0.5) * 2 * region.hh + (ctx.rand2[i] - 0.5) * 0.018 * j;
+    set(i, nx * worldHalfW, ny * worldHalfH, (ctx.rand[i] - 0.5) * 0.16 * j, size, accent(ctx.homeCol[i] + ctx.homeRow[i]));
   }
 }
 
@@ -69,7 +70,7 @@ function contactLayout(ctx, set) {
     const ny = region.cy + Math.sin(a) * rad * region.hh;
     const size = unit * (0.6 + ctx.rand[i] * 0.7);
     const col = (i % 3 === 0 ? ACCENTS[2] : ACCENTS[3]).clone().lerp(SURFACE, 0.18);
-    set(i, nx * worldHalfW, ny * worldHalfH, (ctx.rand2[i] - 0.5) * 0.4, size, col);
+    set(i, nx * worldHalfW, ny * worldHalfH, (ctx.rand2[i] - 0.5) * 0.14 * ctx.jitter, size, col);
   }
 }
 
