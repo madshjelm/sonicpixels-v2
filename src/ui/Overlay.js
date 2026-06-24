@@ -57,6 +57,7 @@ export class Overlay {
     el.innerHTML =
       this.head('Audio', 'Watch the field listen. Pick a track; the grid lights up by frequency.') +
       `<div class="audio-stage">
+        <div class="tile-area" aria-hidden="true"></div>
         <aside class="audio-panel card panel">
           <div class="now-playing">
             <div class="np-head">

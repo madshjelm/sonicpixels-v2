@@ -162,7 +162,18 @@ async function main() {
     let top, bottom;
 
     if (state === 'audio') {
-      // Generous air on every edge: below the header, off the panel/tuner/sides.
+      // The .tile-area flex spacer is laid out as exactly the space the player
+      // does not occupy (left of it on desktop, above it on mobile), so measure
+      // that directly — always in sync with the player, no timing/subtraction.
+      const area = stateEl?.querySelector('.tile-area')?.getBoundingClientRect();
+      if (area && area.width > 4 && area.height > 4) {
+        const i = PAD; // a little air inside the area
+        return {
+          region: rectToRegion(area.left + i, area.top + i, area.right - i, area.bottom - i, vw, vh),
+          docked,
+        };
+      }
+      // Fallback (rare: spacer not laid out yet) — measure the panel as before.
       const air = PAD * 2;
       left = Math.max(PAD * 2, vw * 0.03);
       right = vw - left;
@@ -231,9 +242,11 @@ async function main() {
       if (field.state === 'audio') field.applyLayout('audio');
     });
   };
-  const audioPanelEl = overlay.states.audio.querySelector('.audio-panel');
-  if (audioPanelEl && 'ResizeObserver' in window) {
-    new ResizeObserver(refitAudio).observe(audioPanelEl);
+  // Observe the tile-area itself — it resizes whenever the player does, so the
+  // matrix re-fits to the exact remaining gap on any layout change.
+  const tileAreaEl = overlay.states.audio.querySelector('.tile-area');
+  if (tileAreaEl && 'ResizeObserver' in window) {
+    new ResizeObserver(refitAudio).observe(tileAreaEl);
   }
   overlay.states.audio.addEventListener('transitionend', (e) => {
     if (e.propertyName === 'transform') refitAudio();
