@@ -166,6 +166,35 @@ custom domain set after each deploy. You just need the DNS records.
 > Replacing the old WordPress/Elementor site: once the DNS records above point
 > at GitHub and HTTPS is enforced, remove the old hosting's A/CNAME records so
 > only GitHub serves the domain. DNS changes can take up to a few hours.
+>
+> After the domain is live, refresh cached link previews so old unfurls (the
+> generic icon) get replaced: re-scrape with the
+> [LinkedIn Post Inspector](https://www.linkedin.com/post-inspector/) and the
+> [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/), and
+> re-paste the link in Teams/Slack.
+
+---
+
+## SEO & social cards
+
+`index.html` carries the SEO and link-preview metadata, and a few static files
+in `public/` round it out:
+
+- **Favicon / app icon** — `media/sonix-pixels-logo.png` (also the
+  `apple-touch-icon` and the manifest icon).
+- **Social card** — Open Graph + Twitter tags point at
+  `media/sonic-pixels-social.png` (1178×616). These use absolute
+  `https://sonicpixels.dk/…` URLs, so the preview image resolves once DNS is
+  live (scrapers don't follow relative paths).
+- **`public/robots.txt`** and **`public/sitemap.xml`** — allow indexing and list
+  the single page; `<link rel="canonical">` points search engines at the apex
+  domain.
+- **`public/site.webmanifest`** — name, theme colour and install icon for the
+  Android "add to home screen".
+
+To change the logo or social image, drop a replacement in `public/media/` (keep
+the filenames, or update the references in `index.html`). After a change,
+re-scrape with the debuggers linked above.
 
 ---
 

@@ -1,0 +1,17 @@
+{
+  "name": "Sonic Pixels",
+  "short_name": "Sonic Pixels",
+  "description": "An audio-reactive portfolio by Mads-Bjørn Hjelmar.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#D9D8E6",
+  "theme_color": "#D9D8E6",
+  "icons": [
+    {
+      "src": "/media/sonix-pixels-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
