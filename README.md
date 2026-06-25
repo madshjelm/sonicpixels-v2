@@ -2,7 +2,7 @@
 
 A one-page, audio-reactive WebGL portfolio. A modest field of solid-colour
 square "pixels" — a single `THREE.InstancedMesh` — rearranges between four
-states (Audio · Visual · Web · Contact) and reacts in real time to whatever
+states (Audio · Video · Web · Contact) and reacts in real time to whatever
 music is playing. Warm, soft, light mode. No glow, no nebula — chunky, friendly
 tiles in a calm daylight space.
 
@@ -34,7 +34,7 @@ npm run preview  # serve the production build locally
 ## Editing content — no code required
 
 Everything the site shows is read from **`public/content.json`** and the files
-in **`public/media/`**. To add a track, visual, or web project, drop a file in
+in **`public/media/`**. To add a track, video, or web project, drop a file in
 `public/media/` and add a JSON entry. That's it — no code changes.
 
 ### `content.json` schema (commented example)
@@ -57,19 +57,20 @@ in **`public/media/`**. To add a track, visual, or web project, drop a file in
     }
   ],
 
-  // VISUAL — image or video pieces, shown as a grid of thumbnails.
-  // Click opens a card-style lightbox. Media is lazy-loaded.
-  "visuals": [
-    {
-      "type": "image",            // "image" or "video"
-      "file": "media/visual-1.svg",
-      "title": "Tile Study 01",
-      "description": "…"
-    },
+  // VIDEO — video (and image) pieces, shown as a grid of thumbnails.
+  // Click opens a card-style lightbox. Thumbnails are lazy-loaded.
+  // (The legacy key "visuals" is still accepted for older content.json files.)
+  "videos": [
     {
       "type": "video",            // videos play in the lightbox
       "file": "media/clip.mp4",
       "title": "A moving piece",
+      "description": "…"
+    },
+    {
+      "type": "image",            // "image" or "video"
+      "file": "media/visual-1.svg",
+      "title": "Tile Study 01",
       "description": "…"
     }
   ],
@@ -189,7 +190,7 @@ custom domain set after each deploy. You just need the DNS records.
   - **Audio** is a true **spectrum analyzer** — columns are frequency (low→high,
     coral→teal), each column fills to its band's amplitude, with a slow
     **peak-hold** cap. Settles to a calm resting wave when quiet.
-  - **Visual** tints the framing tiles by spectral brightness and gives them a
+  - **Video** tints the framing tiles by spectral brightness and gives them a
     gentle spectrum shimmer while you browse.
   - **Web** shimmers quietly; hovering a card sends a small, contained nudge
     through the nearby tiles (deliberately subtle, not a sweeping wave).
@@ -217,7 +218,7 @@ custom domain set after each deploy. You just need the DNS records.
 ```
 public/
   content.json        ← all site content
-  media/              ← audio, artwork, visuals
+  media/              ← audio, artwork, video
   CNAME               ← custom domain
 src/
   main.js             ← orchestrator (scene, loop, wiring, adaptive quality)

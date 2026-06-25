@@ -26,9 +26,9 @@ function audioLayout(ctx, set) {
   }
 }
 
-// Visual — a loose grid filling the region (which already starts below the
+// Video — a loose grid filling the region (which already starts below the
 // header, so tiles never sit over the heading text).
-function visualLayout(ctx, set) {
+function videoLayout(ctx, set) {
   const { cols, rows, worldHalfW, worldHalfH, region } = ctx;
   const stepX = (2 * region.hw) / Math.max(1, cols - 1);
   const stepY = (2 * region.hh) / Math.max(1, rows - 1);
@@ -76,7 +76,7 @@ function contactLayout(ctx, set) {
 
 export const layouts = {
   audio: audioLayout,
-  visual: visualLayout,
+  video: videoLayout,
   web: webLayout,
   contact: contactLayout,
 };
