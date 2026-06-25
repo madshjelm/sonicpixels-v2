@@ -13,7 +13,7 @@ const FADE_MS = 1400;
 
 /**
  * Builds and owns the DOM content layer: the four state panels, the audio
- * track panel, the visual lightbox, and the contact card. Reads everything
+ * track panel, the video lightbox, and the contact card. Reads everything
  * from content.json — no hard-coded copy.
  */
 export class Overlay {
@@ -32,7 +32,7 @@ export class Overlay {
       this.root.appendChild(el);
     });
     this.renderAudio();
-    this.renderVisual();
+    this.renderVideo();
     this.renderWeb();
     this.renderContact();
     this.buildLightbox();
@@ -123,22 +123,53 @@ export class Overlay {
     if (this.playBtn) this.playBtn.innerHTML = playing ? ICON.pause : ICON.play;
   }
 
-  // --- Visual ------------------------------------------------------------
-  renderVisual() {
-    const el = this.states.visual;
+  // --- Video -------------------------------------------------------------
+  renderVideo() {
+    const el = this.states.video;
     el.innerHTML =
-      this.head('Visual', 'Pieces and experiments. Tap to open.') +
-      `<div class="state-body"><div class="card-grid visual-grid"></div></div>`;
-    const grid = el.querySelector('.visual-grid');
-    this.content.visuals.forEach((v, i) => {
+      this.head('Video', 'Pieces and experiments. Tap to open.') +
+      `<div class="state-body"><div class="card-grid video-grid"></div></div>`;
+    const grid = el.querySelector('.video-grid');
+    const scrollRoot = el.querySelector('.state-body');
+
+    // Lazy-load the thumbnail clips: each <video> spins up its own decoder, so
+    // loading the whole grid at once is what makes phones stutter when a clip
+    // is opened. Fetch a thumbnail's poster frame only once its card is near
+    // the visible area; cards out of view stay `preload="none"` with no src.
+    const io =
+      'IntersectionObserver' in window
+        ? new IntersectionObserver(
+            (entries, obs) => {
+              for (const e of entries) {
+                if (!e.isIntersecting) continue;
+                const vid = e.target.querySelector('video[data-src]');
+                if (vid) {
+                  vid.preload = 'metadata';
+                  vid.src = vid.dataset.src;
+                  vid.removeAttribute('data-src');
+                }
+                obs.unobserve(e.target);
+              }
+            },
+            { root: scrollRoot, rootMargin: '200px' }
+          )
+        : null;
+
+    this.content.videos.forEach((v) => {
       const card = document.createElement('div');
-      card.className = 'card visual-card panel';
+      card.className = 'card video-card panel';
       const isVideo = v.type === 'video';
+      const src = `${asset(v.file)}#t=0.1`;
+      // With IntersectionObserver we defer the source to `data-src` and load it
+      // on demand; without it (old browsers) fall back to eager metadata load.
+      const videoTag = io
+        ? `<video muted playsinline preload="none" data-src="${src}"></video>`
+        : `<video muted playsinline preload="metadata" src="${src}"></video>`;
       card.innerHTML = `
         <div class="thumb">
           ${
             isVideo
-              ? `<video muted loop playsinline preload="metadata" src="${asset(v.file)}#t=0.1"></video>`
+              ? videoTag
               : `<img loading="lazy" src="${asset(v.file)}" alt="${v.title || ''}" />`
           }
         </div>
@@ -148,6 +179,7 @@ export class Overlay {
         </div>`;
       card.addEventListener('click', () => this.openLightbox(v));
       grid.appendChild(card);
+      if (io && isVideo) io.observe(card);
     });
   }
 

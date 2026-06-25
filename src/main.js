@@ -194,7 +194,7 @@ async function main() {
       return { region: rectToRegion(left, top, right, bottom, vw, vh), docked };
     }
 
-    // Visual / Web / Contact.
+    // Video / Web / Contact.
     if (docked === 'bottom') {
       // Mobile: a calmer, vertically-centred band held well clear of the tuner.
       // The full grid is wider than a phone, so instead of zooming in to fill
@@ -248,7 +248,7 @@ async function main() {
 
   // Re-fit the *current* state smoothly whenever its available area changes —
   // not only on a window 'resize'. This generalises the width-tracking Audio
-  // already gets from its .tile-area spacer to every state, so Visual / Web /
+  // already gets from its .tile-area spacer to every state, so Video / Web /
   // Contact re-fit and stay in view as the window is dragged or the layout
   // settles (fonts, the URL bar, the state animating in).
   let refitQueued = false;

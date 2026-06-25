@@ -76,9 +76,9 @@ export class AudioReactor {
 }
 
 /* ----------------------------------------------------------------------- */
-/* Visual — ambient: brightness tints the field, spectrum gives gentle life */
+/* Video — ambient: brightness tints the field, spectrum gives gentle life  */
 /* ----------------------------------------------------------------------- */
-export class VisualReactor {
+export class VideoReactor {
   enter(field) {
     this.cols = field.cols;
     this.raw = new Float32Array(this.cols);
@@ -183,7 +183,7 @@ export class ContactReactor {
 export function makeReactors() {
   return {
     audio: new AudioReactor(),
-    visual: new VisualReactor(),
+    video: new VideoReactor(),
     web: new WebReactor(),
     contact: new ContactReactor(),
   };

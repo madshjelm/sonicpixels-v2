@@ -429,44 +429,44 @@ body {
 }
 
 /* ---------------------------------------------------------------------- */
-/* Visual + Web grids                                                     */
+/* Video + Web grids                                                      */
 /* ---------------------------------------------------------------------- */
-.visual-grid {
+.video-grid {
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 }
 
-.visual-card {
+.video-card {
   cursor: pointer;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   transition: transform 0.22s var(--ease), box-shadow 0.22s;
 }
-.visual-card:hover {
+.video-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow);
 }
-.visual-card .thumb {
+.video-card .thumb {
   aspect-ratio: 4 / 3;
   background: var(--surface-2);
   overflow: hidden;
 }
-.visual-card .thumb img,
-.visual-card .thumb video {
+.video-card .thumb img,
+.video-card .thumb video {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
-.visual-card .vc-body {
+.video-card .vc-body {
   padding: 14px 16px 16px;
 }
-.visual-card .vc-title {
+.video-card .vc-title {
   font-weight: 600;
   font-size: 16px;
   margin: 0 0 4px;
 }
-.visual-card .vc-desc {
+.video-card .vc-desc {
   margin: 0;
   font-size: 13px;
   color: var(--ink-soft);
@@ -865,11 +865,17 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  opacity: 0;
   transform: translateY(12px) scale(0.98);
-  transition: transform 0.35s var(--ease);
+  /* Opacity is decoupled from the backdrop: on close the card (and its video)
+     clears almost instantly while #lightbox's dim/blur still recede over
+     --lb-fade. Opening keeps the calmer fade. */
+  transition: transform 0.35s var(--ease), opacity 0.12s linear;
 }
 #lightbox.open .lb-card {
+  opacity: 1;
   transform: none;
+  transition: transform 0.35s var(--ease), opacity 0.3s var(--ease);
 }
 .lb-media {
   background: var(--surface-2);

@@ -14,10 +14,10 @@ export function renderFallback(content, mount) {
     )
     .join('');
 
-  const visuals = content.visuals
+  const videos = content.videos
     .map(
       (v) => `
-      <article class="card visual-card">
+      <article class="card video-card">
         <div class="thumb">${
           v.type === 'video'
             ? `<video controls preload="metadata" src="${asset(v.file)}"></video>`
@@ -51,7 +51,7 @@ export function renderFallback(content, mount) {
         <h1>Sonic Pixels<span style="display:inline-block;width:0.22em;height:0.22em;margin-left:0.08em;background:var(--coral);vertical-align:0.02em"></span></h1>
         <p class="state-sub">A simplified view — your browser does not support WebGL, so the reactive scene is turned off. All the content is here.</p>
         <section><h2>Audio</h2><div class="card-grid web-grid">${tracks}</div></section>
-        <section><h2>Visual</h2><div class="card-grid visual-grid">${visuals}</div></section>
+        <section><h2>Video</h2><div class="card-grid video-grid">${videos}</div></section>
         <section><h2>Web</h2><div class="card-grid web-grid">${web}</div></section>
         <section><h2>Contact</h2>
           <div class="card contact-card">
