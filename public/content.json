@@ -29,7 +29,7 @@
       "type": "video",
       "file": "media/Copilot-workshop.mp4",
       "title": "Copilot workshop",
-      "description": "Produceret i After Effects."
+      "description": "Filmed on Osmo Pocket 3. Postproduction primarily in After Effects and Ableton Live."
     },
     {
       "type": "video",
@@ -44,10 +44,10 @@
       "description": "AI generated video with original soundtrack."
     },
     {
-      "type": "image",
-      "file": "media/visual-3.svg",
-      "title": "Field Sketch",
-      "description": "Placeholder visual showing the warm tile palette in motion."
+      "type": "video",
+      "file": "media/lunar-dream.mp4",
+      "title": "Lunar Dream",
+      "description": "Filmed on Greenscreen. Postproduction in Davinci Resolve, Blender and Ableton Live"
     },
     {
       "type": "image",
