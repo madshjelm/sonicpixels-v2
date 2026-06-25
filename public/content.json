@@ -7,7 +7,7 @@
   "tracks": [
     {
       "title": "Atmospheric Piano",
-      "description": "Piano piece inspired by cyclical nordic jazz",
+      "description": "Cyclical nordic jazz",
       "file": "media/atmospheric-piano.mp3",
       "artwork": "media/atmospheric-piano-thumbnail.jpg"
     },
@@ -29,7 +29,7 @@
       "type": "video",
       "file": "media/Copilot-workshop.mp4",
       "title": "Copilot workshop",
-      "description": "Filmed on Osmo Pocket 3. Postproduction primarily in After Effects and Ableton Live."
+      "description": "Filmed on Osmo Pocket 3. Postproduction in After Effects and Ableton Live."
     },
     {
       "type": "video",
@@ -41,7 +41,7 @@
       "type": "video",
       "file": "media/Zen-Garden.mp4",
       "title": "Zen Garden",
-      "description": "AI generated video with original soundtrack."
+      "description": "AI generated videoclips. Assembled in After Effects with original soundtrack."
     },
     {
       "type": "video",
@@ -71,18 +71,18 @@
   "web": [
     {
       "title": "Sonic Pixels",
-      "description": "This site. A single audio-reactive Three.js scene where a field of solid-colour tiles listens to whatever's playing.",
+      "description": "This site. A field of solid-colour 'pixels' react to my music.",
       "tags": ["Claude Code", "ChatGPT Codex"],
       "url": "https://sonicpixels.dk"
     },
     {
       "title": "Momentum AI",
-      "description": "Me and my brothers company. We make custom tailored workshops for companies to help them utilize LLM's",
+      "description": "Me and my brothers company. Our core service is making custom tailored workshops for companies to help them utilize LLM's",
       "tags": ["Wordpress", "Elementor"],
       "url": "https://momentum-ai.dk/"
     },
     {
-      "title": "Ulf Hjelmar",
+      "title": "Portfolio-site",
       "description": "One-page website build for a client.",
       "tags": ["Wordpress", "Elementor"],
       "url": "https://ulfhjelmar.dk"
