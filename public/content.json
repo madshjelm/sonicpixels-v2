@@ -49,24 +49,6 @@
       "title": "Lunar Dream",
       "description": "Filmed on Greenscreen. Postproduction in Davinci Resolve, Blender and Ableton Live"
     },
-    {
-      "type": "image",
-      "file": "media/visual-4.svg",
-      "title": "Grid Bloom",
-      "description": "Placeholder visual — a soft pulse blooming from the centre of the grid."
-    },
-    {
-      "type": "image",
-      "file": "media/visual-5.svg",
-      "title": "Warm Static",
-      "description": "Placeholder visual exploring the resting pattern of the field."
-    },
-    {
-      "type": "image",
-      "file": "media/visual-6.svg",
-      "title": "Resting Pattern",
-      "description": "Placeholder visual. Replace with your own work via content.json."
-    }
   ],
   "web": [
     {
