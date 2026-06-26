@@ -3,6 +3,8 @@
   --bg-edge: #c7c5dc;
   --surface: #f4f3f9;
   --surface-2: #eceaf6;
+  --control-soft: #c9cce8; /* darkened soft control: prev/next + contact pills */
+  --control-soft-hover: #bcc0e2;
   --ink: #2e2c50;
   --ink-soft: #5a577e;
   --primary: #6778d6;
@@ -294,7 +296,7 @@ body {
 .t-btn {
   border: none;
   cursor: pointer;
-  background: var(--surface-2);
+  background: var(--control-soft);
   color: var(--ink);
   width: 48px;
   height: 48px;
@@ -306,6 +308,9 @@ body {
 }
 .t-btn:hover {
   transform: translateY(-2px);
+}
+.t-btn:not(.play):hover {
+  background: var(--control-soft-hover);
 }
 .t-btn.play {
   width: 60px;
@@ -426,6 +431,13 @@ body {
   50% {
     height: 100%;
   }
+}
+/* When a track is selected but playback is paused, the equalizer settles to a
+   flat resting state instead of animating, so the bars never imply that audio
+   is still running. */
+.audio-state.is-paused .tr-eq span {
+  animation: none;
+  height: 35%;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -573,7 +585,7 @@ body {
   font-size: 14px;
   padding: 10px 18px;
   border-radius: 999px;
-  background: var(--surface-2);
+  background: var(--control-soft);
   color: var(--ink);
   transition: transform 0.18s var(--ease), background 0.2s;
 }
