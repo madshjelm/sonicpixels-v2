@@ -121,13 +121,16 @@ export class Overlay {
 
   setPlaying(playing) {
     if (this.playBtn) this.playBtn.innerHTML = playing ? ICON.pause : ICON.play;
+    // Freeze the now-playing track's equalizer when paused so the moving bars
+    // never imply that audio is still running.
+    this.states.audio.classList.toggle('is-paused', !playing);
   }
 
   // --- Video -------------------------------------------------------------
   renderVideo() {
     const el = this.states.video;
     el.innerHTML =
-      this.head('Video', 'Pieces and experiments. Tap to open.') +
+      this.head('Video', 'Filming, greenscreen and AI-generated clips — edited in After Effects, DaVinci Resolve and Blender, scored in Ableton Live. Tap any piece to play.') +
       `<div class="state-body"><div class="card-grid video-grid"></div></div>`;
     const grid = el.querySelector('.video-grid');
     const scrollRoot = el.querySelector('.state-body');
@@ -187,7 +190,7 @@ export class Overlay {
   renderWeb() {
     const el = this.states.web;
     el.innerHTML =
-      this.head('Web', 'Web projects and experiments. Hover sends a ripple through the field.') +
+      this.head('Web', 'Websites and web experiences, built with WordPress and Elementor or coded with AI tools like Claude Code and ChatGPT Codex.') +
       `<div class="state-body"><div class="card-grid web-grid"></div></div>`;
     const grid = el.querySelector('.web-grid');
     this.content.web.forEach((b) => {
@@ -259,16 +262,41 @@ export class Overlay {
   openLightbox(v) {
     const lb = this.lightbox;
     const media = lb.querySelector('.lb-media');
+    const card = lb.querySelector('.lb-card');
     clearTimeout(this._mediaClearTimer); // cancel a pending clear from a quick close→open
+    card.style.maxWidth = ''; // reset any width fitted to a previous clip
     if (v.type === 'video') {
       media.innerHTML = `<video src="${asset(v.file)}" controls autoplay playsinline></video>`;
     } else {
       media.innerHTML = `<img src="${asset(v.file)}" alt="${v.title || ''}" />`;
     }
+    // Shrink the card to the media's displayed width once its dimensions are
+    // known, so a portrait clip's caption wraps under the video instead of
+    // stretching the card wide and leaving blank rails on either side.
+    const el = media.firstElementChild;
+    if (el) {
+      const fit = () => this.fitCardToMedia(el);
+      el.addEventListener(v.type === 'video' ? 'loadedmetadata' : 'load', fit);
+      fit(); // in case the media is already cached/decoded
+    }
     lb.querySelector('h3').textContent = v.title || '';
     lb.querySelector('p').textContent = v.description || '';
     lb.classList.add('open');
     this.handlers.onMediaOpen?.(v); // ducks the music for videos
+  }
+
+  // Cap the lightbox card at the media's on-screen width. The media is capped
+  // at 70vh tall (see .lb-media in style.css), so a tall/portrait clip is shown
+  // far narrower than the card's default max — matching the card to it removes
+  // the empty space beside the video and lets the caption reflow to wrap.
+  fitCardToMedia(el) {
+    const w = el.videoWidth || el.naturalWidth;
+    const h = el.videoHeight || el.naturalHeight;
+    if (!w || !h) return;
+    const dispH = Math.min(h, window.innerHeight * 0.7);
+    const dispW = Math.round((dispH * w) / h);
+    this.lightbox.querySelector('.lb-card').style.maxWidth =
+      `min(${dispW}px, 880px, 100%)`;
   }
 
   closeLightbox() {
@@ -284,6 +312,7 @@ export class Overlay {
     clearTimeout(this._mediaClearTimer);
     this._mediaClearTimer = setTimeout(() => {
       lb.querySelector('.lb-media').innerHTML = '';
+      lb.querySelector('.lb-card').style.maxWidth = ''; // drop the fitted width
     }, FADE_MS);
   }
 }
