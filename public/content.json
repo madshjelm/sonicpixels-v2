@@ -12,10 +12,10 @@
       "artwork": "media/atmospheric-piano-thumbnail.jpg"
     },
     {
-      "title": "Soft Circuit",
-      "description": "Brighter and a touch faster, with swung hats lighting up the top rows. Placeholder track; swap your own audio into /public/media.",
-      "file": "media/track-2-soft-circuit.wav",
-      "artwork": "media/art-2.svg"
+      "title": "Eudaimonia",
+      "description": "Piano composition with synthesized orchestra",
+      "file": "media/Eudaimonia.mp3",
+      "artwork": "media/Eudamonia-thumbnail.jpg"
     },
     {
       "title": "Low Tide",
