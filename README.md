@@ -64,6 +64,11 @@ in **`public/media/`**. To add a track, video, or web project, drop a file in
     {
       "type": "video",            // videos play in the lightbox
       "file": "media/clip.mp4",
+      "artwork": "media/clip.jpg", // optional thumbnail. Doubles as the
+                                   // lightbox loading poster, so the frame
+                                   // shows at the right shape while the clip
+                                   // streams in (no flash/crop). If omitted, a
+                                   // frame grabbed from the clip is used.
       "title": "A moving piece",
       "description": "…"
     },

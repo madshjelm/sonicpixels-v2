@@ -168,21 +168,23 @@ export class Overlay {
       const videoTag = io
         ? `<video muted playsinline preload="none" data-src="${src}"></video>`
         : `<video muted playsinline preload="metadata" src="${src}"></video>`;
+      // Thumbnail priority: a provided artwork image, else a poster frame
+      // grabbed from the clip itself (videos), else the image file.
+      const thumb = v.artwork
+        ? `<img loading="lazy" src="${asset(v.artwork)}" alt="${v.title || ''}" />`
+        : isVideo
+          ? videoTag
+          : `<img loading="lazy" src="${asset(v.file)}" alt="${v.title || ''}" />`;
       card.innerHTML = `
-        <div class="thumb">
-          ${
-            isVideo
-              ? videoTag
-              : `<img loading="lazy" src="${asset(v.file)}" alt="${v.title || ''}" />`
-          }
-        </div>
+        <div class="thumb">${thumb}</div>
         <div class="vc-body">
           <h3 class="vc-title">${v.title || 'Untitled'}</h3>
           <p class="vc-desc">${v.description || ''}</p>
         </div>`;
       card.addEventListener('click', () => this.openLightbox(v));
       grid.appendChild(card);
-      if (io && isVideo) io.observe(card);
+      // Only the lazy poster-frame videos need the observer; artwork loads itself.
+      if (io && isVideo && !v.artwork) io.observe(card);
     });
   }
 
@@ -264,21 +266,46 @@ export class Overlay {
     const media = lb.querySelector('.lb-media');
     const card = lb.querySelector('.lb-card');
     clearTimeout(this._mediaClearTimer); // cancel a pending clear from a quick close→open
+    const token = (this._lbToken = (this._lbToken || 0) + 1); // ignore stale async fits
     card.style.maxWidth = ''; // reset any width fitted to a previous clip
+    media.classList.remove('loading');
+
+    const hasArt = !!v.artwork;
     if (v.type === 'video') {
-      media.innerHTML = `<video src="${asset(v.file)}" controls autoplay playsinline></video>`;
+      // The artwork doubles as the video's poster: a <video> with a poster but
+      // no loaded data takes the poster's dimensions, so the frame is the right
+      // shape from the first paint — no default 300x150 box, no snap on load.
+      const poster = hasArt ? ` poster="${asset(v.artwork)}"` : '';
+      media.innerHTML = `<video${poster} src="${asset(v.file)}" controls autoplay playsinline></video>`;
     } else {
       media.innerHTML = `<img src="${asset(v.file)}" alt="${v.title || ''}" />`;
     }
-    // Shrink the card to the media's displayed width once its dimensions are
-    // known, so a portrait clip's caption wraps under the video instead of
-    // stretching the card wide and leaving blank rails on either side.
     const el = media.firstElementChild;
-    if (el) {
-      const fit = () => this.fitCardToMedia(el);
-      el.addEventListener(v.type === 'video' ? 'loadedmetadata' : 'load', fit);
-      fit(); // in case the media is already cached/decoded
+    // Shrink the card to the media's displayed width so a portrait clip's
+    // caption wraps under it instead of leaving blank rails on either side.
+    const fit = () => { if (token === this._lbToken) this.fitCardToMedia(el); };
+
+    if (v.type === 'video' && hasArt) {
+      // Size the card to the poster straight away; the video's matching
+      // dimensions then arrive without resizing anything.
+      this.fitCardToArtwork(asset(v.artwork), token);
+      el.addEventListener('loadedmetadata', fit, { once: true });
+    } else {
+      // No poster (a clip without artwork, or an image): hold a reserved frame
+      // with a spinner and keep the element hidden so nothing flashes at the
+      // wrong size, then reveal and fit once its real dimensions are known.
+      media.classList.add('loading');
+      el.classList.add('lb-await');
+      const reveal = () => {
+        if (token !== this._lbToken) return;
+        media.classList.remove('loading');
+        el.classList.remove('lb-await');
+        this.fitCardToMedia(el);
+      };
+      el.addEventListener(v.type === 'video' ? 'loadedmetadata' : 'load', reveal, { once: true });
+      if (v.type !== 'video' && el.complete && el.naturalWidth) reveal();
     }
+
     lb.querySelector('h3').textContent = v.title || '';
     lb.querySelector('p').textContent = v.description || '';
     lb.classList.add('open');
@@ -299,10 +326,24 @@ export class Overlay {
       `min(${dispW}px, 880px, 100%)`;
   }
 
+  // Preload the artwork (a clip's poster) and size the card to it immediately,
+  // so a portrait video's card is already correct before its metadata loads.
+  fitCardToArtwork(src, token) {
+    const img = new Image();
+    img.addEventListener(
+      'load',
+      () => { if (token === this._lbToken) this.fitCardToMedia(img); },
+      { once: true }
+    );
+    img.src = src;
+  }
+
   closeLightbox() {
     const lb = this.lightbox;
     if (!lb.classList.contains('open')) return;
     lb.classList.remove('open');
+    this._lbToken = (this._lbToken || 0) + 1; // cancel any in-flight fit callbacks
+    lb.querySelector('.lb-media').classList.remove('loading');
     this.handlers.onMediaClose?.(); // sweeps the music back in
     // Stop the video's own audio at once so it doesn't overlap the returning
     // music; keep the paused frame so the backdrop can fade out, then clear it
