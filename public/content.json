@@ -35,8 +35,9 @@
     {
       "type": "video",
       "file": "media/AI%20Videoproduktion.mp4",
-      "title": "AI videoproduktion",
-      "description": "AI generated video with original soundtrack and voiceover."
+      "title": "AI Animation",
+      "artwork": "media/ai-video-production-art.jpg",
+      "description": "Explainer with AI videoclips and original soundtrack/voiceover."
     },
     {
       "type": "video",
