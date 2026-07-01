@@ -55,7 +55,7 @@ export class Overlay {
   renderAudio() {
     const el = this.states.audio;
     el.innerHTML =
-      this.head('Audio', 'Watch the field listen. Pick a track; the grid lights up by frequency.') +
+      this.head('Audio', 'All tracks composed and performed by myself.') +
       `<div class="audio-stage">
         <div class="tile-area" aria-hidden="true"></div>
         <aside class="audio-panel card panel">
@@ -130,7 +130,7 @@ export class Overlay {
   renderVideo() {
     const el = this.states.video;
     el.innerHTML =
-      this.head('Video', 'Filming, greenscreen and AI-generated clips — edited in After Effects, DaVinci Resolve and Blender, scored in Ableton Live. Tap any piece to play.') +
+      this.head('Video', 'A selection of clips that highlights my various approaches to video production.') +
       `<div class="state-body"><div class="card-grid video-grid"></div></div>`;
     const grid = el.querySelector('.video-grid');
     const scrollRoot = el.querySelector('.state-body');
@@ -192,7 +192,7 @@ export class Overlay {
   renderWeb() {
     const el = this.states.web;
     el.innerHTML =
-      this.head('Web', 'Websites and web experiences, built with WordPress and Elementor or coded with AI tools like Claude Code and ChatGPT Codex.') +
+      this.head('Web', 'Websites and webapps that I have built.') +
       `<div class="state-body"><div class="card-grid web-grid"></div></div>`;
     const grid = el.querySelector('.web-grid');
     this.content.web.forEach((b) => {
