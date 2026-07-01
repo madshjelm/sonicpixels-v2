@@ -19,9 +19,9 @@
     },
     {
       "title": "Study Jazz",
-      "description": "Produced for a client who runs a study music Youtube channel.",
+      "description": "Produced for a client who runs a study music Youtube channel",
       "file": "media/study-jazz.mp3",
-      "artwork": "media/art-3.svg"
+      "artwork": "media/study-jazz-thumbnail.jpg"
     }
   ],
   "videos": [
@@ -29,7 +29,7 @@
       "type": "video",
       "file": "media/Copilot-workshop.mp4",
       "title": "Copilot workshop",
-      "description": "Filmed on Osmo Pocket 3. Postproduction in After Effects and Ableton Live.",
+      "description": "Filmed on Osmo Pocket 3. Postproduction in After Effects and Ableton Live",
       "artwork": "media/copilot-workshop-art.jpg"
     },
     {
@@ -37,14 +37,14 @@
       "file": "media/AI%20Videoproduktion.mp4",
       "title": "AI Animation",
       "artwork": "media/ai-video-production-art.jpg",
-      "description": "Explainer with AI videoclips and original soundtrack/voiceover."
+      "description": "Explainer with AI videoclips and original soundtrack/voiceover"
     },
     {
       "type": "video",
       "file": "media/Zen-Garden.mp4",
       "title": "Zen Garden",
       "artwork": "media/zen-garden-art.jpg",
-      "description": "AI generated videoclips. Assembled in After Effects with original soundtrack."
+      "description": "AI generated videoclips. Assembled in After Effects with original soundtrack"
     },
     {
       "type": "video",
@@ -57,7 +57,7 @@
   "web": [
     {
       "title": "Sonic Pixels",
-      "description": "This site. A field of solid-colour 'pixels' react to my music.",
+      "description": "This site. A field of solid-colour 'pixels' react to my music",
       "tags": ["Claude Code", "ChatGPT Codex"],
       "url": "https://sonicpixels.dk"
     },
@@ -69,7 +69,7 @@
     },
     {
       "title": "Portfolio-site",
-      "description": "One-page website build for a client.",
+      "description": "One-page website build for a client",
       "tags": ["Wordpress", "Elementor"],
       "url": "https://ulfhjelmar.dk"
     },
