@@ -114,6 +114,7 @@ async function main() {
     overlay.setState(state);
     field.applyLayout(state);
     field.setReactor(reactors[state]);
+    field.clearCursor(); // no stale halo when leaving Web
   });
   overlayRoot.appendChild(tuner.el);
   app.appendChild(overlayRoot);
@@ -251,6 +252,22 @@ async function main() {
   // which changes the player panel's height. Track it so the matrix re-fits.
   if (window.visualViewport) window.visualViewport.addEventListener('resize', resize);
   resize();
+
+  // Web cursor halo: feed the pointer into the field while browsing Web so the
+  // tiles swell around it. Ignore touch (no hover), and clear the halo whenever
+  // the pointer is in another state, leaves the window, or the tab blurs.
+  window.addEventListener('pointermove', (e) => {
+    if (e.pointerType === 'touch' || field.state !== 'web') {
+      field.clearCursor();
+      return;
+    }
+    const { w, h } = viewport();
+    const nx = (e.clientX / w) * 2 - 1;
+    const ny = -((e.clientY / h) * 2 - 1);
+    field.setCursor(nx, ny);
+  });
+  window.addEventListener('pointerleave', () => field.clearCursor());
+  window.addEventListener('blur', () => field.clearCursor());
 
   // Re-fit the *current* state smoothly whenever its available area changes —
   // not only on a window 'resize'. This generalises the width-tracking Audio
