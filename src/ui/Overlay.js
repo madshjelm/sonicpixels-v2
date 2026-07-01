@@ -55,7 +55,7 @@ export class Overlay {
   renderAudio() {
     const el = this.states.audio;
     el.innerHTML =
-      this.head('Audio', 'All tracks composed and performed by myself.') +
+      this.head('Audio', 'Instrumental music composed, performed, and produced by me.') +
       `<div class="audio-stage">
         <div class="tile-area" aria-hidden="true"></div>
         <aside class="audio-panel card panel">
@@ -130,7 +130,7 @@ export class Overlay {
   renderVideo() {
     const el = this.states.video;
     el.innerHTML =
-      this.head('Video', 'A selection of clips that highlights my various approaches to video production.') +
+      this.head('Video', 'Selected video projects exploring AI, editing, motion, and visual storytelling') +
       `<div class="state-body"><div class="card-grid video-grid"></div></div>`;
     const grid = el.querySelector('.video-grid');
     const scrollRoot = el.querySelector('.state-body');
@@ -192,7 +192,7 @@ export class Overlay {
   renderWeb() {
     const el = this.states.web;
     el.innerHTML =
-      this.head('Web', 'Websites and webapps that I have built.') +
+      this.head('Web', 'Selected websites and interactive web projects I’ve built') +
       `<div class="state-body"><div class="card-grid web-grid"></div></div>`;
     const grid = el.querySelector('.web-grid');
     this.content.web.forEach((b) => {
