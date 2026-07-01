@@ -155,6 +155,7 @@ body {
   font-size: clamp(15px, 1.6vw, 17px);
   line-height: 1.5;
   max-width: 56ch;
+  text-wrap: pretty;
 }
 
 .state-body {
