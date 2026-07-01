@@ -163,6 +163,11 @@ body {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+  /* Cards lift on hover (transform: translateY(-4px)); without this the
+     top row's lift clips against the scrollport edge, cutting off the
+     card's top border/corner. */
+  padding-top: 8px;
+  margin-top: -8px;
   padding-bottom: 32px;
   touch-action: pan-y;
   overscroll-behavior: contain;
