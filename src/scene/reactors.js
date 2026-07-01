@@ -1,5 +1,5 @@
 import { Color } from 'three';
-import { paletteRamp } from '../config.js';
+import { paletteRamp, PALETTE } from '../config.js';
 
 /**
  * Reactors map the audio feature bus onto per-tile drive (dScale / dLift /
@@ -24,6 +24,7 @@ export class AudioReactor {
     this.raw = new Float32Array(this.cols);
     this.bars = new Float32Array(this.cols);
     this.peaks = new Float32Array(this.cols);
+    this.bgColor = new Color(PALETTE.bg);
     this.t = 0;
   }
 
@@ -52,24 +53,48 @@ export class AudioReactor {
     }
 
     const rs = this.rowStep;
+    // Contrast is carried by saturation, not whitening: the lit bar keeps its
+    // full palette colour and stands forward, while unlit tiles blend part-way
+    // toward the background so they recede (but stay visible). On a light
+    // canvas, whitening the lit tiles is what washed the bars out before.
+    const bg = this.bgColor;
+    const bgR = bg.r, bgG = bg.g, bgB = bg.b;
+    const FADE = 0.38; // how far unlit tiles blend toward the background
+    const GLOW = 0.3; // gentle highlight along the bar's leading edge
     for (let i = 0; i < field.n; i++) {
       const c = field.homeCol[i];
       const rowFrac = this.rows > 1 ? field.homeRow[i] / (this.rows - 1) : 0.5;
       const h = this.bars[c];
 
-      // Lit up to the bar height, with a soft edge one row-step wide.
-      // Modest scale growth (tiles must not overlap neighbours); the lit
-      // tiles read mostly through brightness, not size.
+      // Lit up to the bar height, with a soft edge one row-step wide. Modest
+      // scale growth (tiles must not overlap neighbours) — the lit tiles read
+      // mostly through their vivid colour, not size.
       const lit = clamp((h - rowFrac) / rs);
       field.dScale[i] = 0.04 + 0.4 * lit * (0.6 + 0.4 * h);
-      field.dBright[i] = 0.18 + 0.62 * lit;
 
-      // Peak-hold cap: the tile nearest the held peak gets a bright lift.
+      // Fade unlit tiles toward the background; lit tiles keep full saturation.
+      const i3 = i * 3;
+      field.dColor[i3] = bgR;
+      field.dColor[i3 + 1] = bgG;
+      field.dColor[i3 + 2] = bgB;
+      field.dColorMix[i] = FADE * (1 - lit);
+
+      // A soft crest along the bar's leading edge (peaks across the one-row-step
+      // soft edge; zero in the vivid body and the muted field) — a glow, not a
+      // wash.
+      const crest = lit * (1 - lit) * 4;
+      field.dBright[i] = GLOW * crest;
+
+      // Peak-hold marker: a crisp, vivid dot hovering above the bar. Pull it
+      // back to full saturation (undo the fade) so it reads against the muted
+      // upper field, rather than whitening into the background.
       const pd = Math.abs(rowFrac - this.peaks[c]);
       if (this.peaks[c] > 0.06 && pd < rs * 0.75) {
         const cap = 1 - pd / (rs * 0.75);
         field.dScale[i] += 0.1 * cap;
-        if (field.dBright[i] < 0.55 + 0.4 * cap) field.dBright[i] = 0.55 + 0.4 * cap;
+        field.dColorMix[i] *= 1 - cap;
+        const capBright = 0.22 * cap;
+        if (field.dBright[i] < capBright) field.dBright[i] = capBright;
       }
     }
   }
