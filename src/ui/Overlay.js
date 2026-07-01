@@ -213,7 +213,7 @@ export class Overlay {
         const vh = (cv && cv.clientHeight) || window.innerHeight;
         const nx = ((r.left + r.width / 2) / vw) * 2 - 1;
         const ny = -(((r.top + r.height / 2) / vh) * 2 - 1);
-        this.handlers.onPulse(nx, ny, 0.5);
+        this.handlers.onPulse(nx, ny, 0.7);
       };
       card.addEventListener('mouseenter', ripple);
       card.addEventListener('touchstart', ripple, { passive: true });

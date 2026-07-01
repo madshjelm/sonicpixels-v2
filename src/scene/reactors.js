@@ -126,8 +126,10 @@ export class VideoReactor {
     const drift = this.t * 0.06 * dm; // the gradient scrolls
     const ang = this.t * 0.03 * dm; // and its direction slowly rotates
     const ax = Math.cos(ang), ay = Math.sin(ang);
-    const center = clamp(0.5 + (f.centroid - 0.5) * 0.6);
-    const spread = 0.45; // how much of the palette the field spans at once
+    // Centre drifts warm/cool with brightness, but gently so the wide span
+    // isn't clamped hard onto one end.
+    const center = clamp(0.5 + (f.centroid - 0.5) * 0.3);
+    const spread = 0.95; // span (nearly) the full palette: coral(red)→teal(green)
     const rowsM1 = this.rows > 1 ? this.rows - 1 : 1;
     const mix = 0.82 + 0.12 * f.level; // aurora dominates for a smooth, calm wash
     const flux = f.flux;
@@ -187,8 +189,8 @@ export class WebReactor {
     for (let i = 0; i < field.n; i++) {
       const c = field.homeCol[i];
       const mag = clamp(this.raw[c] * f.gain);
-      let s = playing ? 0.03 + 0.16 * mag : 0.02;
-      let bright = 0.1 * mag;
+      let s = playing ? 0.03 + 0.4 * mag : 0.02;
+      let bright = 0.28 * mag;
       let lift = 0;
       const i3 = i * 3;
 
