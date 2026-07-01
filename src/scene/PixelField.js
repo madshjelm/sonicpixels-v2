@@ -162,17 +162,22 @@ export class PixelField {
     this.dColorMix.fill(0);
   }
 
-  // Send a gentle, contained nudge from a normalized screen point (-1..1).
-  // Kept small and quick so it reads as a soft acknowledgement, not a wave.
+  // Emit a ripple from a normalized screen point (-1..1) that expands outward
+  // and weakens as it travels (strong at the origin, fading toward `reach`), so
+  // a card hover reads as a wave rolling away across the field.
   pulseAt(nx, ny, strength = 0.5) {
+    const W = this.worldHalfW;
+    const speed = W * 0.7;
+    const reach = W * 1.0; // distance over which the ripple fades to nothing
     this.pulses.push({
-      x: nx * this.worldHalfW,
+      x: nx * W,
       y: ny * this.worldHalfH,
-      r: this.worldHalfW * 0.05,
-      speed: this.worldHalfW * 0.35,
-      width: this.worldHalfW * 0.16,
+      r: W * 0.04,
+      speed,
+      width: W * 0.18,
+      reach,
       strength,
-      life: 0.7,
+      life: reach / speed + 0.2, // removed just after it has faded out
       age: 0,
     });
     if (this.pulses.length > 16) this.pulses.shift();
@@ -185,7 +190,9 @@ export class PixelField {
       const dx = x - p.x,
         dy = y - p.y;
       const d = (Math.sqrt(dx * dx + dy * dy) - p.r) / p.width;
-      a += p.strength * Math.exp(-d * d) * (1 - p.age / p.life);
+      // Gaussian ring profile × distance falloff (weaker the further it travels).
+      const radial = p.reach ? Math.max(0, 1 - p.r / p.reach) : 1 - p.age / p.life;
+      a += p.strength * Math.exp(-d * d) * radial;
     }
     return a;
   }
