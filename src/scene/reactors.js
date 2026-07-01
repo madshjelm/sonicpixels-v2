@@ -1,5 +1,5 @@
 import { Color } from 'three';
-import { paletteRamp, PALETTE } from '../config.js';
+import { paletteRamp, PALETTE, reducedMotion } from '../config.js';
 
 /**
  * Reactors map the audio feature bus onto per-tile drive (dScale / dLift /
@@ -106,6 +106,7 @@ export class AudioReactor {
 export class VideoReactor {
   enter(field) {
     this.cols = field.cols;
+    this.rows = field.rows;
     this.raw = new Float32Array(this.cols);
     this.tint = new Color();
     this.t = 0;
@@ -116,10 +117,19 @@ export class VideoReactor {
     this.t += dt;
     f.getLogBands(this.raw);
 
-    // Frame-wide hue from spectral centroid (dark→warm, bright→cool).
-    this.tint.copy(paletteRamp(0.15 + f.centroid * 0.75));
-    const tr = this.tint.r, tg = this.tint.g, tb = this.tint.b;
-    const mix = 0.12 + 0.18 * f.level;
+    // Drifting aurora: instead of one frame-wide hue, a soft spatial colour
+    // gradient (coral→teal) that slowly scrolls and rotates over time, so the
+    // field flows with colour even when paused. The music nudges the gradient's
+    // centre (dark→warm, bright→cool) and how strongly it leads the base tiles.
+    const TAU = Math.PI * 2;
+    const dm = reducedMotion ? 0.4 : 1; // calm the drift under reduced motion
+    const drift = this.t * 0.06 * dm; // the gradient scrolls
+    const ang = this.t * 0.03 * dm; // and its direction slowly rotates
+    const ax = Math.cos(ang), ay = Math.sin(ang);
+    const center = clamp(0.5 + (f.centroid - 0.5) * 0.6);
+    const spread = 0.45; // how much of the palette the field spans at once
+    const rowsM1 = this.rows > 1 ? this.rows - 1 : 1;
+    const mix = 0.82 + 0.12 * f.level; // aurora dominates for a smooth, calm wash
     const flux = f.flux;
 
     for (let i = 0; i < field.n; i++) {
@@ -131,10 +141,17 @@ export class VideoReactor {
       } else {
         field.dScale[i] = 0.03 * (0.5 + 0.5 * Math.sin(this.t + field.rand[i] * 6.283));
       }
+
+      // Per-tile hue from its position along the drifting/rotating axis.
+      const gx = field.binFrac[i] - 0.5;
+      const gy = field.homeRow[i] / rowsM1 - 0.5;
+      const proj = gx * ax + gy * ay;
+      const g = 0.5 + 0.5 * Math.sin((proj + drift) * TAU);
+      paletteRamp(clamp(center + (g - 0.5) * spread), this.tint);
       const i3 = i * 3;
-      field.dColor[i3] = tr;
-      field.dColor[i3 + 1] = tg;
-      field.dColor[i3 + 2] = tb;
+      field.dColor[i3] = this.tint.r;
+      field.dColor[i3 + 1] = this.tint.g;
+      field.dColor[i3 + 2] = this.tint.b;
       field.dColorMix[i] = mix;
     }
   }
@@ -156,22 +173,46 @@ export class WebReactor {
     f.getLogBands(this.raw);
     const hasPulses = field.pulses.length > 0;
 
+    // Cursor halo: tiles swell gently around the pointer wherever it moves
+    // (desktop Web browsing only — set/cleared from main.js). A soft Gaussian
+    // on distance from the cursor, sized relative to the view so it holds at
+    // every screen size.
+    const cur = field.cursor;
+    const haloOn = !!(cur && cur.active);
+    const cx = haloOn ? cur.x : 0;
+    const cy = haloOn ? cur.y : 0;
+    const sigma = (field.worldHalfW || 1) * 0.14;
+    const inv2s2 = 1 / (2 * sigma * sigma);
+
     for (let i = 0; i < field.n; i++) {
       const c = field.homeCol[i];
       const mag = clamp(this.raw[c] * f.gain);
       let s = playing ? 0.03 + 0.16 * mag : 0.02;
       let bright = 0.1 * mag;
+      let lift = 0;
+      const i3 = i * 3;
+
+      if (haloOn) {
+        const dx = field.curPos[i3] - cx;
+        const dy = field.curPos[i3 + 1] - cy;
+        const halo = Math.exp(-(dx * dx + dy * dy) * inv2s2);
+        if (halo > 0.01) {
+          s += 0.42 * halo;
+          lift = 0.14 * halo;
+          if (bright < 0.26 * halo) bright = 0.26 * halo;
+        }
+      }
 
       if (hasPulses) {
-        const i3 = i * 3;
         const p = field.samplePulse(field.curPos[i3], field.curPos[i3 + 1]);
         if (p > 0) {
-          s += 0.45 * p;
-          field.dLift[i] = 0.3 * p;
-          if (bright < 0.4 * p) bright = 0.4 * p;
+          s += 0.65 * p;
+          if (lift < 0.4 * p) lift = 0.4 * p;
+          if (bright < 0.5 * p) bright = 0.5 * p;
         }
       }
       field.dScale[i] = s;
+      field.dLift[i] = lift;
       field.dBright[i] = bright;
     }
   }

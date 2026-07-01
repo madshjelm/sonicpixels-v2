@@ -30,6 +30,9 @@ export class PixelField {
     this.docked = 'right';
     this.reactor = null;
     this.pulses = [];
+    // Live pointer position in world space (Web cursor halo); active only while
+    // the mouse is over the Web state (see main.js).
+    this.cursor = { x: 0, y: 0, active: false };
 
     const n = this.n;
     this.curPos = new Float32Array(n * 3);
@@ -185,6 +188,18 @@ export class PixelField {
       a += p.strength * Math.exp(-d * d) * (1 - p.age / p.life);
     }
     return a;
+  }
+
+  // Point the cursor halo at a normalized screen point (-1..1), mapped into the
+  // same world space as the tiles (matches pulseAt's basis).
+  setCursor(nx, ny) {
+    this.cursor.x = nx * this.worldHalfW;
+    this.cursor.y = ny * this.worldHalfH;
+    this.cursor.active = true;
+  }
+
+  clearCursor() {
+    this.cursor.active = false;
   }
 
   update(dt, features, playing) {
