@@ -152,9 +152,15 @@ async function main() {
     const { w: vw, h: vh } = viewport();
     const docked = vw <= DOCK_BREAKPOINT ? 'bottom' : 'right';
     const stateEl = overlay.states[state];
+    // .state CSS-transitions translateY(14px) → none; getBoundingClientRect
+    // includes that in-flight offset, placing targets too low. Subtract it
+    // so tiles aim at the final position from the first frame.
+    const transformY = stateEl
+      ? stateEl.getBoundingClientRect().top - (stateEl.offsetTop + overlay.root.getBoundingClientRect().top)
+      : 0;
     const headRect = stateEl?.querySelector('.state-head')?.getBoundingClientRect();
     const tunerH = tuner.el.getBoundingClientRect().height || 96;
-    const headBottom = headRect ? headRect.bottom : 120;
+    const headBottom = headRect ? headRect.bottom - transformY : 120;
     // A little extra side margin keeps edge tiles clear of the screen edge even
     // with residual parallax from the tiny per-tile z jitter.
     const sideMargin = Math.max(PAD * 1.5, vw * 0.03);
@@ -173,7 +179,7 @@ async function main() {
         // matrix sits clear of the tuner/player.
         const ix = PAD;
         return {
-          region: rectToRegion(area.left + ix, area.top + PAD, area.right - ix, area.bottom - PAD * 2.5, vw, vh),
+          region: rectToRegion(area.left + ix, area.top - transformY + PAD, area.right - ix, area.bottom - transformY - PAD * 2.5, vw, vh),
           docked,
         };
       }
@@ -187,7 +193,7 @@ async function main() {
         if (panel && panel.width) right = panel.left - air * 1.4;
         bottom = vh - tunerH - air;
       } else {
-        bottom = (panel && panel.height ? panel.top : vh * 0.5) - air;
+        bottom = (panel && panel.height ? panel.top - transformY : vh * 0.5) - air;
       }
       bottom = Math.max(bottom, top + 60);
       right = Math.max(right, left + 80);
