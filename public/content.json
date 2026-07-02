@@ -6,6 +6,12 @@
   },
   "tracks": [
     {
+      "title": "Welcome to Sonic Pixels",
+      "description": "Frequency sweep made from white noise",
+      "file": "media/freq-sweep-v1.mp3",
+      "artwork": "media/atmospheric-piano-thumbnail.jpg"
+    },
+    {
       "title": "Atmospheric Piano",
       "description": "Cyclical nordic jazz",
       "file": "media/atmospheric-piano.mp3",
