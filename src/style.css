@@ -263,6 +263,13 @@ body {
   text-transform: uppercase;
   color: var(--primary-deep);
   margin: 0 0 4px;
+  transition: opacity 0.35s var(--ease), transform 0.35s var(--ease);
+}
+/* Paused: the "Now Playing" claim slips down and fades out (opacity keeps its
+   line-box, so nothing below shifts); pressing play brings it back up. */
+.audio-state.is-paused .np-band {
+  opacity: 0;
+  transform: translateY(8px);
 }
 
 .np-title {

@@ -174,7 +174,7 @@ export class PixelField {
       y: ny * this.worldHalfH,
       r: W * 0.04,
       speed,
-      width: W * 0.18,
+      width: W * 0.11,
       reach,
       strength,
       life: reach / speed + 0.2, // removed just after it has faded out
