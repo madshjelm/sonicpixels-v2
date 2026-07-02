@@ -1,4 +1,6 @@
 import { asset, AUDIO } from '../config.js';
+const ARTIST = 'Mads-Bjørn Hjelmar';
+const ALBUM = 'Sonic Pixels';
 import {
   bandEnergy,
   timeRMS,
@@ -58,10 +60,28 @@ export class AudioEngine {
 
   _makeEl() {
     const el = new Audio();
-    el.preload = 'none';
+    // Buffer ahead once a track is loaded (the elements get no src until a
+    // track is selected, so nothing is fetched up front). Streaming just-in-
+    // time with 'none' is what caused dropouts on slow connections.
+    el.preload = 'auto';
     el.crossOrigin = 'anonymous';
     el.loop = false;
     el.addEventListener('ended', () => this.next());
+    // Keep engine + UI in sync when playback is toggled outside the page
+    // (lockscreen / Bluetooth controls, headphone unplug). Events from the
+    // non-active element (crossfade cleanup pausing the faded-out side) and
+    // toggles we initiated ourselves are ignored.
+    el.addEventListener('play', () => {
+      if (this.elements[this.activeEl] !== el || this.playing) return;
+      this.playing = true;
+      this._emitState();
+    });
+    el.addEventListener('pause', () => {
+      if (this.elements[this.activeEl] !== el || !this.playing) return;
+      if (el.ended) return; // natural end: 'ended' → next() takes over
+      this.playing = false;
+      this._emitState();
+    });
     return el;
   }
 
@@ -69,7 +89,29 @@ export class AudioEngine {
   init() {
     if (this.ctx) return;
     const Ctx = window.AudioContext || window.webkitAudioContext;
-    this.ctx = new Ctx();
+    // 'playback' asks for larger output buffers than the default interactive
+    // hint — the difference between smooth music and crackle on Android with
+    // Bluetooth audio, where the output route adds latency and small buffers
+    // underrun. Older webkit constructors take no options.
+    try {
+      this.ctx = new Ctx({ latencyHint: 'playback' });
+    } catch (e) {
+      this.ctx = new Ctx();
+    }
+
+    // Mobile browsers suspend the context when the tab backgrounds or the
+    // output route changes (e.g. Bluetooth reconnect); resume whenever we
+    // ought to be audible again.
+    const resumeIfNeeded = () => {
+      if (this.playing && this.ctx.state !== 'running')
+        this.ctx.resume?.()?.catch(() => {});
+    };
+    this.ctx.addEventListener?.('statechange', resumeIfNeeded);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) resumeIfNeeded();
+    });
+
+    this._initMediaSession();
 
     this.analyser = this.ctx.createAnalyser();
     this.analyser.fftSize = 2048;
@@ -177,24 +219,30 @@ export class AudioEngine {
     this._crossfade(nextEl, this.playing ? 0.8 : 0.5);
     this.activeEl = nextEl;
     this.playing = true;
-    this.onState();
+    this._emitState();
   }
 
   togglePlay() {
-    if (!this.ready || !this.playing) {
+    if (!this.ready) {
       this.play();
       return;
     }
     const el = this.elements[this.activeEl];
     if (el.paused) {
-      this.ctx.resume();
-      el.play();
+      // Nothing loaded yet (initialised but no track selected) → start fresh.
+      if (!el.src) {
+        this.play();
+        return;
+      }
+      // Resume from where the track was paused — never reload/restart it.
+      this.ctx.resume?.()?.catch(() => {});
+      el.play().catch(() => {});
       this.playing = true;
     } else {
       el.pause();
       this.playing = false;
     }
-    this.onState();
+    this._emitState();
   }
 
   next() {
@@ -219,7 +267,7 @@ export class AudioEngine {
     this._videoPauseTimer = setTimeout(() => {
       this.elements[this.activeEl].pause();
       this.playing = false;
-      this.onState();
+      this._emitState();
     }, time * 1000 + 30);
   }
 
@@ -233,7 +281,7 @@ export class AudioEngine {
     this.ctx.resume?.();
     this.elements[this.activeEl].play().catch(() => {});
     this.playing = true;
-    this.onState();
+    this._emitState();
     const now = this.ctx.currentTime;
     const f = this.sweep.frequency;
     f.cancelScheduledValues(now);
@@ -243,6 +291,54 @@ export class AudioEngine {
 
   get current() {
     return this.tracks[this.index];
+  }
+
+  // Publish a state change to the UI and to the OS media session together, so
+  // the on-page player and the lockscreen / Bluetooth controls never disagree.
+  _emitState() {
+    this._syncSession();
+    this.onState();
+  }
+
+  // Lockscreen / Bluetooth (Media Session API): show the current track and
+  // let hardware play/pause/next/prev drive the engine.
+  _initMediaSession() {
+    if (!('mediaSession' in navigator)) return;
+    // Individual try/catch: browsers throw on actions they don't support.
+    const on = (action, fn) => {
+      try {
+        navigator.mediaSession.setActionHandler(action, fn);
+      } catch (e) {
+        /* action unsupported on this platform */
+      }
+    };
+    on('play', () => {
+      if (!this.playing) this.togglePlay();
+    });
+    on('pause', () => {
+      if (this.playing) this.togglePlay();
+    });
+    on('previoustrack', () => this.prev());
+    on('nexttrack', () => this.next());
+  }
+
+  _syncSession() {
+    if (!('mediaSession' in navigator)) return;
+    const tr = this.current;
+    if (tr && this._sessionTrack !== tr) {
+      this._sessionTrack = tr;
+      try {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: tr.title || 'Untitled',
+          artist: ARTIST,
+          album: ALBUM,
+          artwork: tr.artwork ? [{ src: asset(tr.artwork) }] : [],
+        });
+      } catch (e) {
+        /* MediaMetadata unavailable */
+      }
+    }
+    navigator.mediaSession.playbackState = this.playing ? 'playing' : 'paused';
   }
 
   // Called every frame; refreshes the feature bus. dt in seconds.
