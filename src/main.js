@@ -162,6 +162,11 @@ async function main() {
     const headRect = stateEl?.querySelector('.state-head')?.getBoundingClientRect();
     const tunerH = tuner.el.getBoundingClientRect().height || 96;
     const headBottom = headRect ? headRect.bottom - transformY : 120;
+    // One header→tiles gap for every state, mirroring what Audio really gets:
+    // the .state-head margin (clamp(14px, 2.4vh, 28px) in style.css) plus the
+    // tile-area's inner PAD. Keeping Video/Web/Contact on the same measure is
+    // what makes the field sit at the same height in all four states.
+    const headGap = PAD + Math.min(28, Math.max(14, vh * 0.024));
     // A little extra side margin keeps edge tiles clear of the screen edge even
     // with residual parallax from the tiny per-tile z jitter.
     const sideMargin = Math.max(PAD * 1.5, vw * 0.03);
@@ -201,28 +206,24 @@ async function main() {
       return { region: rectToRegion(left, top, right, bottom, vw, vh), docked };
     }
 
-    // Video / Web / Contact.
+    // Video / Web / Contact: one rule everywhere — fill the slot between the
+    // measured header baseline and the tuner. Hanging all three states off
+    // the same headGap keeps the field at Audio's height below the heading
+    // and never above it. The contact card is flex-centred in that same span,
+    // so its halo centres on the card with tiles above and below; the
+    // video/web card grids (held lower by their .state-head margin in
+    // style.css) keep the top tile rows visible above the cards. On narrow
+    // screens the grid is wider than the viewport, so filling the slot lands
+    // the rows sparser — a calm field, not an edge-to-edge busy one.
     if (docked === 'bottom') {
-      // Mobile: a calmer, vertically-centred band held well clear of the tuner.
-      // The full grid is wider than a phone, so instead of zooming in to fill
-      // the height (which shoves most tiles off-screen) settle for a smaller
-      // band with deliberate air below it — a calm middle ground, not a busy
-      // edge-to-edge fill. Some spill is fine here; staying calm matters more.
       const sideM = Math.max(PAD * 2, vw * 0.05); // slight inset → clearly centred
       left = sideM;
       right = vw - sideM;
-      const ceil = state === 'contact' ? PAD * 3 : headBottom + PAD;
-      const floor = vh - tunerH - Math.max(PAD * 7, vh * 0.13); // generous air above tuner
-      const avail = Math.max(120, floor - ceil);
-      const bandH = avail * 0.74; // a calm band, not the whole slot
-      top = ceil + (avail - bandH) * 0.42; // nudge a touch above centre
-      // Hold clear of the tuner, but never let the band collapse (top + 60).
-      bottom = Math.max(Math.min(top + bandH, vh - tunerH - PAD * 2), top + 60);
+      top = headBottom + headGap;
+      bottom = Math.max(vh - tunerH - PAD * 2, top + 60);
     } else {
-      // Desktop: fill the full width between the header ceiling and the tuner.
-      const bottomGap = PAD * 3;
-      top = state === 'contact' ? PAD : headBottom + PAD;
-      bottom = Math.max(vh - tunerH - bottomGap, top + 60);
+      top = headBottom + headGap;
+      bottom = Math.max(vh - tunerH - PAD * 3, top + 60);
     }
     return { region: rectToRegion(left, top, right, bottom, vw, vh), docked };
   }
