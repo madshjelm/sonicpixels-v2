@@ -456,6 +456,15 @@ body {
 /* ---------------------------------------------------------------------- */
 /* Video + Web grids                                                      */
 /* ---------------------------------------------------------------------- */
+/* Hold the card grids lower than the default head margin so the field's top
+   tile rows (which start one headGap below the header, same as Audio — see
+   regionFor in main.js) stay visible above the cards instead of hiding
+   behind them. */
+.video-state .state-head,
+.web-state .state-head {
+  margin-bottom: clamp(72px, 11vh, 112px);
+}
+
 .video-grid {
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 }
@@ -1064,6 +1073,11 @@ body {
   .state {
     padding: clamp(16px, 5vw, 28px);
     padding-bottom: 0;
+  }
+  /* Phones have less vertical room: a slimmer tile band above the cards. */
+  .video-state .state-head,
+  .web-state .state-head {
+    margin-bottom: clamp(48px, 7vh, 84px);
   }
 }
 
