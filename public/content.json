@@ -84,6 +84,12 @@
       "description": "Interactive web experience built to demonstrate the capabilities of AI assisted coding",
       "tags": ["Claude Code", "ChatGPT Codex"],
       "url": "https://momentum-ai.dk/3d-ai-workshop/"
+    },
+    {
+      "title": "Sunflower IO",
+      "description": "Interactive website for Sunflower IO",
+      "tags": ["Claude Code", "ChatGPT Codex"],
+      "url": "https://sunflowerio.dk/"
     }
   ],
   "contact": {
